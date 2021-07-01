@@ -1,0 +1,1 @@
+cmd_Release/obj.target/mylib.node := g++ -o Release/obj.target/mylib.node -shared -pthread -rdynamic -m64  -Wl,-soname=mylib.node -Wl,--start-group Release/obj.target/mylib/mylib_wrap.o Release/obj.target/mylib/../../lib/test/myclass.o -Wl,--end-group 
