@@ -1,3 +1,7 @@
+# SWIG
+build/
+*_wrap.cxx
+
 # Logs
 logs
 *.log
