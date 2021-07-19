@@ -2,6 +2,7 @@
 #define MYCLASS_H
 
 #include <iostream>
+#include <string>
 
 class MyClass
 {
@@ -10,6 +11,18 @@ class MyClass
 public:
         MyClass(int number);
         void sayHello();
+};
+
+class Xarm
+{
+public:
+        Xarm(const std::string &port = "PORT-8000",
+             int number = 5,
+             bool test = true);
+
+        std::string myPort;
+        int myNumber;
+        bool myBool;
 };
 
 #endif

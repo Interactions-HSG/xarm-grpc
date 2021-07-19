@@ -14,6 +14,9 @@ Then run node-gyp build to actually create the module:
 ```
 node-gyp build
 ```
+> :bulb: on first time, use: `node-gyp configure`  
+> to remove any generated build files and the "out" dir, use: `node-gyp clean`  
+  
 Then run actual test script:
 ```
 node ../../src/test/swig-test.js
