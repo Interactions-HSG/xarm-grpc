@@ -2,9 +2,9 @@
   "name": "xarm-commander",
   "version": "1.0.0",
   "description": "Simple client for controlling the xArm7 using the C++ SDK.",
-  "main": "src/test/commander-test.js",
+  "main": "src/xarm-commander.js",
   "bin": {
-    "xarm-commander": "./src/test/commander-test.js"
+    "xarm-commander": "./src/xarm-commander.js"
   },
   "directories": {
     "lib": "lib"
@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/Interactions-HSG/xarm-commander#readme",
   "dependencies": {
-    "commander": "^8.0.0"
+    "commander": "^8.0.0",
+    "ref-array": "^1.2.0"
   }
 }

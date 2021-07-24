@@ -23,6 +23,10 @@ public:
         std::string myPort;
         int myNumber;
         bool myBool;
+
+        int run(int *num);
 };
+
+int *array();
 
 #endif

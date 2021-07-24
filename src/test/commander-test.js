@@ -3,6 +3,8 @@
 var program = require('commander');
 const options = program.opts();
 
+var name = "Jonas";
+
 program
     .version('0.0.1')
     .option('-i, --ip-address <ip>', 'IP address of xArm control box.', '192.168.0.0')
@@ -10,7 +12,7 @@ program
     .command('send <message>')
     .description('send message.')
     .action((message) => {
-        console.log(`This is your first message: ${message} (${options.ipAddress})`);
+        console.log(`Hi ${name}, this is your first message: ${message} (${options.ipAddress})`);
     });
 
 
