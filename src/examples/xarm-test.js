@@ -19,7 +19,6 @@ console.log('xArm has warn:', xarm.has_warn());
 
 // pointer test for method: int get_state(int *num)
 state_p = mylib.new_intp();
-xarm.state
 //mylib.intp_assign(state_p, 33);
 //console.log(" state = " + mylib.intp_value(state_p));
 res = xarm.get_state(state_p);
