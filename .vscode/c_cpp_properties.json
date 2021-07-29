@@ -1,0 +1,19 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/include/**",
+                "${workspaceFolder}/lib/xArm-CPLUS-SDK/include/**"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "gnu18",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "gcc-x64",
+            "compilerArgs": []
+        }
+    ],
+    "version": 4
+}
