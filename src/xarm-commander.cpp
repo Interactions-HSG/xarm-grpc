@@ -4,10 +4,6 @@
 #include <string>
 #include <iostream>
 
-void xarm_init(XArmAPI *arm)
-{
-}
-
 int main(int argc, char **argv)
 {
     XArmAPI *arm;
@@ -16,13 +12,61 @@ int main(int argc, char **argv)
 
     CLI::App app{"xarm-commander: a command line tool for controlling the xArm7."};
 
+    // print defaults on help
+    app.option_defaults()->always_capture_default();
+
     // ===== FLAGS =====
-    bool print_mode;
-    app.add_flag("-p", print_mode, "Print additional information");
+    bool print_mode = false;
+    app.add_flag("-v, --verbose", print_mode, "Verbose mode."); // TODO: multilevel verbose modes + logger
 
     app.require_subcommand(1); // set max number of subcommands to 1
 
     // ===== SUBCOMMANDS =====
+    // Subcommand: motion_enable
+    auto motion_enable = app.add_subcommand("motion_enable", "Motion enable");
+
+    bool enable_option = true;
+    motion_enable->add_option("-e, --enable", enable_option, "Enable or disable");
+
+    int servo_option = 8;
+    motion_enable->add_option("-s, --servo", servo_option, "Choose servo (1-8), 8: enable/disable all servo ");
+
+    motion_enable->callback([&]() {
+        arm = new XArmAPI(port);
+        res = arm->motion_enable(enable_option, servo_option);
+
+        if (print_mode)
+            std::cout << "Motion enable - Response: " << res << "\n";
+    });
+
+    // Subcommand: set_state
+    auto set_state = app.add_subcommand("set_state", "Set the xArm state");
+
+    int state_option{0};
+    set_state->add_option("-s, --state", state_option, "State, 0: sport, 3: pause, 4: stop");
+
+    set_state->callback([&]() {
+        arm = new XArmAPI(port);
+        res = arm->set_state(state_option);
+
+        if (print_mode)
+            std::cout << "Set state: " << state_option << " - Response: " << res << "\n";
+    });
+
+    // Subcommand: set_mode
+    auto set_mode = app.add_subcommand("set_mode", "Set the xArm mode");
+
+    int mode_option = 0;
+    set_mode->add_option("-m", mode_option, "Mode, 0: position control mode, 1: servo motion mode, 2: joint teaching mode, 3: cartesian teaching mode (invalid), 4: simulation mode");
+
+    set_mode->callback([&]() {
+        arm = new XArmAPI(port);
+        res = arm->set_mode(mode_option);
+
+        if (print_mode)
+            std::cout << "Set mode: " << mode_option << " - Response: " << res << "\n";
+    });
+
     // Subcommand: get_version
     auto get_version = app.add_subcommand("get_version", "Get the xArm version");
     get_version->callback([&]() {
@@ -62,26 +106,52 @@ int main(int argc, char **argv)
         std::cout << "]";
     });
 
-    // Subcommand: motion_enable
-    auto motion_enable = app.add_subcommand("motion_enable", "Motion enable");
+    // Subcommand: set_position
+    auto set_position = app.add_subcommand("set_position", "Set the cartesian position");
 
-    bool enable_option = true;
-    motion_enable->add_option("-b", enable_option, "Enable or disable"); // TODO: ,true : not working?
+    float x_option = 300;
+    set_position->add_option("-x", x_option, "x(mm)");
+    float y_option = 0;
+    set_position->add_option("-y", y_option, "y(mm)");
+    float z_option = 200;
+    set_position->add_option("-z", z_option, "z(mm)");
+    float roll_option = 180;
+    set_position->add_option("-r, --roll", roll_option, "roll(rad or °)");
+    float pitch_option = 0;
+    set_position->add_option("-p, --pitch", pitch_option, "pitch(rad or °)");
+    float yaw_option = 0;
+    set_position->add_option("-w, --yaw", yaw_option, "yaw(rad or °)");
 
-    int servo_option = 8;
-    motion_enable->add_option("-s", servo_option, "Choose servo (1-8), 8: enable/disable all servo ");
+    bool wait_option = false;
+    set_position->add_option("--wait", wait_option, "whether to wait for the arm to complete");
 
-    motion_enable->callback([&]() {
+    set_position->callback([&]() {
         arm = new XArmAPI(port);
-        res = arm->motion_enable(enable_option, servo_option);
+
+        float pose[6];
+        pose[0] = x_option;
+        pose[1] = y_option;
+        pose[2] = z_option;
+        pose[3] = roll_option;
+        pose[4] = pitch_option;
+        pose[5] = yaw_option;
+
+        res = arm->set_position(pose, wait_option);
 
         if (print_mode)
-            std::cout << "Motion enable - Response: " << res << "\n";
+        {
+            std::cout << "Set position - Response: " << res << "\n"
+                      << "Position: ";
+            std::cout << "[ ";
+            for (int i = 0; i < 6; i++)
+                std::cout << pose[i] << " ";
+            std::cout << "]";
+        }
     });
 
     CLI11_PARSE(app, argc, argv);
 
-    std::cout << "\nThanks for using commander!\n"
+    std::cout << "\nThanks for using xarm-commander!\n"
               << std::endl;
     return 0;
 }
