@@ -23,7 +23,7 @@ sudo make -C lib/xArm-CPLUS-SDK clean
 ## Install
 ```
 # compile and build the sourcecode for the xarm-commander:
-make commander
+make
 
 # to use the xarm-commander globally install it in `/usr/local/bin`
 sudo make install

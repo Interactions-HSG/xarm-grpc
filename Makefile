@@ -8,7 +8,7 @@ TARGET = /usr/local/bin/
 
 COMMANDER_NAME = xarm-commander
 
-all: commander install
+all: commander
 
 commander:
 	mkdir -p $(BUILD_DIR)
