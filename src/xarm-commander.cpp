@@ -3,6 +3,7 @@
 
 #include <string>
 #include <iostream>
+#include <chrono>
 
 int main(int argc, char **argv)
 {
@@ -61,7 +62,12 @@ int main(int argc, char **argv)
 
     set_mode->callback([&]() {
         arm = new XArmAPI(port);
+        std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
         res = arm->set_mode(mode_option);
+
+        std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+        std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
 
         if (print_mode)
             std::cout << "Set mode: " << mode_option << " - Response: " << res << "\n";
@@ -83,6 +89,7 @@ int main(int argc, char **argv)
     auto get_state = app.add_subcommand("get_state", "Get the xArm state");
     get_state->callback([&]() {
         arm = new XArmAPI(port);
+
         res = arm->get_state(&arm->state);
 
         if (print_mode)

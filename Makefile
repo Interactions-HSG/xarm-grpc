@@ -25,6 +25,11 @@ commander:
 	mkdir -p $(BUILD_DIR)
 	$(CXX) $(SRC_DIR)$(COMMANDER_NAME).cpp -I$(INC_DIR) -L$(LIB_DIR) -lxarm -o $(BUILD_DIR)$(COMMANDER_NAME)
 
+commander-debug:
+	mkdir -p $(BUILD_DIR)
+	$(CXX) -g $(SRC_DIR)$(COMMANDER_NAME).cpp -I$(INC_DIR) -L$(LIB_DIR) -lxarm -o $(BUILD_DIR)$(COMMANDER_NAME)
+
+
 install:
 	cp $(BUILD_DIR)$(COMMANDER_NAME) /usr/bin/
 
