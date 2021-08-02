@@ -1,9 +1,16 @@
 #include <CLI11.hpp>
+#include <easylogging++.h>
 #include <xarm/wrapper/xarm_api.h>
 
 #include <string>
 #include <iostream>
 #include <chrono>
+
+#define INFO 1
+#define DEBUG 2
+#define EVALUATION 3
+
+INITIALIZE_EASYLOGGINGPP
 
 int main(int argc, char **argv)
 {
@@ -17,8 +24,9 @@ int main(int argc, char **argv)
     app.option_defaults()->always_capture_default();
 
     // ===== FLAGS =====
-    bool print_mode = false;
-    app.add_flag("-v, --verbose", print_mode, "Verbose mode."); // TODO: multilevel verbose modes + logger
+    int verbose_level = 0; // int for supporting multiple flags
+    app.add_flag_function(
+        "-v, --verbose", [&](int verbose_level) { el::Loggers::setVerboseLevel(verbose_level); VLOG(DEBUG) << "Verbose level: " << verbose_level << std::endl; }, "Verbose mode. To print debugging messages about the progress. Multiple -v flags increase the verbosity. The maximum is 3.");
 
     app.require_subcommand(1); // set max number of subcommands to 1
 
@@ -36,8 +44,7 @@ int main(int argc, char **argv)
         arm = new XArmAPI(port);
         res = arm->motion_enable(enable_option, servo_option);
 
-        if (print_mode)
-            std::cout << "Motion enable - Response: " << res << "\n";
+        VLOG(INFO) << "Motion enable - Response: " << res << "\n";
     });
 
     // Subcommand: set_state
@@ -50,8 +57,7 @@ int main(int argc, char **argv)
         arm = new XArmAPI(port);
         res = arm->set_state(state_option);
 
-        if (print_mode)
-            std::cout << "Set state: " << state_option << " - Response: " << res << "\n";
+        VLOG(INFO) << "Set state: " << state_option << " - Response: " << res << "\n";
     });
 
     // Subcommand: set_mode
@@ -62,15 +68,14 @@ int main(int argc, char **argv)
 
     set_mode->callback([&]() {
         arm = new XArmAPI(port);
+
         std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
         res = arm->set_mode(mode_option);
 
         std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
-        std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
-
-        if (print_mode)
-            std::cout << "Set mode: " << mode_option << " - Response: " << res << "\n";
+        VLOG(EVALUATION) << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
+        VLOG(INFO) << "Set mode: " << mode_option << " - Response: " << res << "\n";
     });
 
     // Subcommand: get_version
@@ -79,9 +84,8 @@ int main(int argc, char **argv)
         arm = new XArmAPI(port);
         res = arm->get_version(arm->version); // TODO: check if this is even needed or arm->version holds an updated version
 
-        if (print_mode)
-            std::cout << "Get version - Response: " << res << "\n"
-                      << "Version: ";
+        VLOG(INFO) << "Get version - Response: " << res << "\n"
+                   << "Version: ";
         std::cout << arm->version;
     });
 
@@ -92,9 +96,8 @@ int main(int argc, char **argv)
 
         res = arm->get_state(&arm->state);
 
-        if (print_mode)
-            std::cout << "Get state - Response: " << res << "\n"
-                      << "State: ";
+        VLOG(INFO) << "Get state - Response: " << res << "\n"
+                   << "State: ";
         std::cout << arm->state;
     });
 
@@ -104,9 +107,8 @@ int main(int argc, char **argv)
         arm = new XArmAPI(port);
         res = arm->get_position(arm->position);
 
-        if (print_mode)
-            std::cout << "Get position - Response: " << res << "\n"
-                      << "Position: ";
+        VLOG(INFO) << "Get position - Response: " << res << "\n"
+                   << "Position: ";
         std::cout << "[ ";
         for (int i = 0; i < 6; i++)
             std::cout << arm->position[i] << " ";
@@ -145,20 +147,17 @@ int main(int argc, char **argv)
 
         res = arm->set_position(pose, wait_option);
 
-        if (print_mode)
-        {
-            std::cout << "Set position - Response: " << res << "\n"
-                      << "Position: ";
-            std::cout << "[ ";
-            for (int i = 0; i < 6; i++)
-                std::cout << pose[i] << " ";
-            std::cout << "]";
-        }
+        VLOG(INFO) << "Set position - Response: " << res << "\n"
+                   << "Position: ";
+        VLOG(INFO) << "[ ";
+        for (int i = 0; i < 6; i++)
+            VLOG(INFO) << pose[i] << " ";
+        VLOG(INFO) << "]";
     });
 
     CLI11_PARSE(app, argc, argv);
 
-    std::cout << "\nThanks for using xarm-commander!\n"
-              << std::endl;
+    VLOG(INFO) << "\nThanks for using xarm-commander!\n"
+               << std::endl;
     return 0;
 }
