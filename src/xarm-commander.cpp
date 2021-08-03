@@ -6,8 +6,8 @@
 
 int main(int argc, char **argv)
 {
+
     XArmAPI *arm;
-    std::string port = "130.82.171.9";
     int res = 1;
 
     CLI::App app{"xarm-commander: a command line tool for controlling the xArm7."};
@@ -19,23 +19,28 @@ int main(int argc, char **argv)
     bool print_mode{false};
     app.add_flag("-v, --verbose", print_mode, "verbose mode."); // TODO: multilevel verbose modes + logger
 
-    app.require_subcommand(1); // set max number of subcommands to 1
+    // ===== OPTIONS =====
+    std::string port; // 130.82.171.9
+    app.add_option("-p, --port", port, "ip-address of xArm control box");
 
     // ===== SUBCOMMANDS =====
+    app.require_subcommand(1); // set max number of subcommands to 1
+
     // Subcommand: motion_enable
-    auto motion_enable = app.add_subcommand("motion_enable", "send a motion_enable command");
+    auto *motion_enable = app.add_subcommand("motion_enable", "send a motion_enable command");
 
     bool enable_flag{true};
     motion_enable->add_flag("-e, --enable, -d{false}, --disable{false}", enable_flag, "enable or disable the xArm (default: --enable)");
 
-    int servo_option = 8;
+    int servo_option{8};
     motion_enable->add_option("-s, --servo", servo_option, "choose servo [1-8] to be enabled/disabled, (default: 8 - enable/disable all servo)");
 
     motion_enable->callback([&]() {
         arm = new XArmAPI(port);
         res = arm->motion_enable(enable_flag, servo_option);
 
-        if (print_mode) {
+        if (print_mode)
+        {
             std::cout << "Motion " << (enable_flag ? "enable" : "disable") << " - Response: " << res << "\n";
         }
     });
@@ -50,7 +55,8 @@ int main(int argc, char **argv)
         arm = new XArmAPI(port);
         res = arm->set_state(state_option);
 
-        if (print_mode) {
+        if (print_mode)
+        {
             std::cout << "Set state: " << state_option << " - Response: " << res << "\n";
         }
     });
@@ -65,7 +71,8 @@ int main(int argc, char **argv)
         arm = new XArmAPI(port);
         res = arm->set_mode(mode_option);
 
-        if (print_mode) {
+        if (print_mode)
+        {
             std::cout << "Set mode: " << mode_option << " - Response: " << res << "\n";
         }
     });
@@ -76,7 +83,8 @@ int main(int argc, char **argv)
         arm = new XArmAPI(port);
         res = arm->get_version(arm->version); // TODO: check if this is even needed or arm->version holds an updated version
 
-        if (print_mode) {
+        if (print_mode)
+        {
             std::cout << "Get version - Response: " << res << "\n"
                       << "Version: ";
         }
@@ -89,7 +97,8 @@ int main(int argc, char **argv)
         arm = new XArmAPI(port);
         res = arm->get_state(&arm->state);
 
-        if (print_mode) {
+        if (print_mode)
+        {
             std::cout << "Get state - Response: " << res << "\n"
                       << "State: ";
         }
@@ -102,12 +111,14 @@ int main(int argc, char **argv)
         arm = new XArmAPI(port);
         res = arm->get_position(arm->position);
 
-        if (print_mode) {
+        if (print_mode)
+        {
             std::cout << "Get position - Response: " << res << "\n"
                       << "Position: ";
         }
         std::cout << "[ ";
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < 6; i++)
+        {
             std::cout << arm->position[i] << " ";
         }
         std::cout << "]";
@@ -145,19 +156,19 @@ int main(int argc, char **argv)
 
         res = arm->set_position(pose, wait_option);
 
-        if (print_mode) {
+        if (print_mode)
+        {
             std::cout << "Set position - Response: " << res << "\n"
                       << "Position: ";
             std::cout << "[ ";
             for (int i = 0; i < 6; i++)
                 std::cout << pose[i] << " ";
-            std::cout << "]";
+            std::cout << "]"
+                      << "\n";
         }
     });
 
     CLI11_PARSE(app, argc, argv);
 
-    std::cout << "\nThanks for using xarm-commander!\n"
-              << std::endl;
     return 0;
 }

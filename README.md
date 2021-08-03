@@ -8,15 +8,15 @@ git clone git@github.com:Interactions-HSG/xarm-commander.git --recursive
 ```
 
 ## Preparation: xArm-CPLUS-SDK
-To use the xarm-commander, first install the xArm-C++-SDK library.
+To use the xarm-commander, first install the xArm-PLUS-SDK library.
 ```
 # install
 sudo make -C lib/xArm-CPLUS-SDK xarm install
 
-# clean the build folder of the xarm library
+# uninstall
 sudo make -C lib/xArm-CPLUS-SDK uninstall
 
-# uninstall
+# clean the build folder of the xarm library
 sudo make -C lib/xArm-CPLUS-SDK clean
 ```
 
@@ -33,6 +33,7 @@ sudo make uninstall
 
 # delete the build folder of the xarm-commander
 make clean
+```
 
 ## Synopsis
 For further description about usage of the xarm-commander, use -h or --help:
