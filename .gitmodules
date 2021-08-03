@@ -1,0 +1,3 @@
+[submodule "lib/xArm-CPLUS-SDK"]
+	path = lib/xArm-CPLUS-SDK
+	url = https://github.com/xArm-Developer/xArm-CPLUS-SDK.git
