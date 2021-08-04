@@ -42,3 +42,24 @@ xarm-commander -h
 ```
 > :bulb: Can be also used for subcommands: `xarm-commander get_version -h`  
 
+## Configuration Parameters
+### Formatter:
+Formatting engine: `clangFormat`  
+Formatting style: `Visual Studio`
+
+### Linter:
+Linter: `clang-tidy` (LLVM version 10.0.0)  
+Linter checks: 
+
+        "modernize-*",
+        "diagnostic-*",
+        "analyzer-*",
+        "readability-*",
+        "performance-*",
+        "clang-analyzer-*",
+        "bugprone-*",
+        "cppcoreguidelines-*",
+        "google-*",
+        "llvm-*"
+        
+> :exclamation: Checks partially overlap (TODO)
