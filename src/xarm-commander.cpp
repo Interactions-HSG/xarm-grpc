@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 
     // ===== OPTIONS =====
     std::string port; // 130.82.171.9
-    app.add_option("-p, --port", port, "ip-address of xArm control box");
+    app.add_option("-p, --port", port, "ip-address of xArm control box")->required();
 
     // ===== SUBCOMMANDS =====
     app.require_subcommand(1); // set max number of subcommands to 1
