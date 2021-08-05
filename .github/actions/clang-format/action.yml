@@ -1,0 +1,19 @@
+---
+name: "clang-format"
+description: "Run clang-format"
+inputs:
+  style:
+    description: "style to specify"
+    required: true
+    default: file
+  src:
+    description: "src file to format"
+    required: true
+    default: src/main.cpp
+runs:
+  using: "docker"
+  image: "Dockerfile"
+  args:
+    - "-Werror"
+    - "-style=${{ inputs.style }}"
+    - ${{ inputs.src }}

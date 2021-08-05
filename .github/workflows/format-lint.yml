@@ -1,0 +1,31 @@
+---
+name: clang-format and clang-tidy
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  run-format-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: "recursive"
+      - name: build xarm
+        run: make -C lib/xArm-CPLUS-SDK xarm
+      - name: clang-format
+        uses: ./.github/actions/clang-format
+        with:
+          style: file
+          src: src/xarm-commander.cpp
+      - name: clang-tidy
+        uses: ./.github/actions/clang-tidy
+        with:
+          src: src/xarm-commander.cpp
+          inc: include
