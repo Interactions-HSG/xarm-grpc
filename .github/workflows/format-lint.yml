@@ -11,18 +11,20 @@ on:
 
 jobs:
   run-format-lint:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-      - name: Checkout
+      - name: checkout
         uses: actions/checkout@v2
         with:
           submodules: "recursive"
-      - name: Run clang-format
+      - name: build
+        run: make -C lib/xArm-CPLUS-SDK xarm install
+      - name: clang-format
         uses: ./.github/actions/clang-format
         with:
           style: file
           src: src/xarm-commander.cpp
-      - name: Run clang-tidy
+      - name: clang-tidy
         uses: ./.github/actions/clang-tidy
         with:
           src: src/xarm-commander.cpp
