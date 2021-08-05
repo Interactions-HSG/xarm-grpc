@@ -42,3 +42,18 @@ xarm-commander -h
 ```
 > :bulb: Can be also used for subcommands: `xarm-commander get_version -h`  
 
+## Formatting
+The formatting style used in this project is Google with an indent of 4 (see `.clang-format`).  
+To format the source code, run the following:
+```
+clang-format -i -style=file src/xarm-commander.cpp
+```
+
+## Linting
+Currently, clang-tidy is used for linting (see `.clang-tidy`).  
+To lint the source code, run the following:
+```
+clang-tidy src/xarm-commander.cpp -- -Iinclude
+```
+        
+> :exclamation: Checks partially overlap (TODO)
