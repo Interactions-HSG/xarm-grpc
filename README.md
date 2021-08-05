@@ -1,44 +1,59 @@
 # xarm-commander
-A C++ CLI Tool for controlling the xArm7 Robot using the [xArm-C++-SDK](https://github.com/xArm-Developer/xArm-CPLUS-SDK) and [CLI11](https://github.com/CLIUtils/CLI11).
+A C++ CLI Tool for controlling the xArm7 Robot using the [xArm-CPLUS-SDK](https://github.com/xArm-Developer/xArm-CPLUS-SDK) and [CLI11](https://github.com/CLIUtils/CLI11).
 For demonstration purposes, only two simple commands have been implemented so far.
 
-## Installation: Linux
-To use the xarm-commander, first install the xArm-C++-SDK library:
+The `xArm-CPLUS-SDK` is added as a subomodule, so when cloning this repository, do
 ```
-sudo make lib-install
+git clone git@github.com:Interactions-HSG/xarm-commander.git --recursive
 ```
-Then compile and build the sourcecode for the xarm-commander:
-```
-make commander
-```
-To use the xarm-commander globally install it in `/usr/bin`:
-```
-sudo make install
-```
-> :bulb: These steps can be automatically run by using: `sudo make all`  
 
-## Uninstall/Clean: Linux
-Uninstall the xArm-C++-SDK library:
+## Preparation: xArm-CPLUS-SDK
+To use the xarm-commander, first install the xArm-PLUS-SDK library.
 ```
-sudo make lib-uninstall
+# install
+sudo make -C lib/xArm-CPLUS-SDK xarm install
+
+# uninstall
+sudo make -C lib/xArm-CPLUS-SDK uninstall
+
+# clean the build folder of the xarm library
+sudo make -C lib/xArm-CPLUS-SDK clean
 ```
-Clean the build folder of the xarm library:
+
+## Install
 ```
-make lib-clean
-```
-Uninstall the xarm-commander:
-```
+# compile and build the sourcecode for the xarm-commander:
+make
+
+# to use the xarm-commander globally install it in `/usr/local/bin`
+sudo make install
+
+# uninstall the xarm-commander
 sudo make uninstall
-```
-Delete the build folder of the xarm-commander:
-```
+
+# delete the build folder of the xarm-commander
 make clean
 ```
-> :bulb: These steps can be automatically run by using: `sudo make clean-all`  
-## Help
-For further help on the xarm-commander usage, use -h or --help:
+
+## Synopsis
+For further description about usage of the xarm-commander, use -h or --help:
 ```
 xarm-commander -h
 ```
 > :bulb: Can be also used for subcommands: `xarm-commander get_version -h`  
 
+## Formatting
+The formatting style used in this project is Google with an indent of 4 (see `.clang-format`).  
+To format the source code, run the following:
+```
+clang-format -i -style=file src/xarm-commander.cpp
+```
+
+## Linting
+Currently, clang-tidy is used for linting (see `.clang-tidy`).  
+To lint the source code, run the following:
+```
+clang-tidy src/xarm-commander.cpp -- -Iinclude
+```
+        
+> :exclamation: Checks partially overlap (TODO)
