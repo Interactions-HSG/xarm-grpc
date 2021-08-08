@@ -2,6 +2,20 @@
 
 This document provides general information for contributing to xarm-commander.
 
+## Format and Lint
+
+The formatting style used in this project is Google with an indent of 4 (see `.clang-format`).
+To format the source code, run the following:
+```
+clang-format -i -style=file src/xarm-commander.cpp
+```
+
+Currently, clang-tidy is used for linting (see `.clang-tidy`).
+To lint the source code, run the following:
+```
+clang-tidy src/xarm-commander.cpp -- -Iinclude
+```
+
 ## Commits
 
 xarm-commander is maintained to be compatible with [Conventional Changelog](https://github.com/conventional-changelog/conventional-changelog), which structure Git commit messages in a way that allows automatic generation of changelogs.
@@ -53,13 +67,4 @@ Simplify the API by reducing the number of functions.
 
 Closes #110
 BREAKING CHANGE: Change all calls to the API to the new `do()` function.
-``` 
-
-## Pull Requests and Feature Branches
-
-* Do not merge with master while developing a new feature or providing a fix in a new branch
-* Do a rebase if updates in the master such as a fix are required:
 ```
-git checkout master && git pull && git checkout - && git rebase master
-```
-* Pull Requests are merged using rebase 
