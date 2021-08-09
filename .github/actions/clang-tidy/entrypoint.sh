@@ -1,4 +1,4 @@
 #!/bin/bash
 
-make -C lib/xArm-CPLUS-SDK install
+make -C libs/xArm-CPLUS-SDK install
 clang-tidy "$@"
