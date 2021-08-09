@@ -28,4 +28,4 @@ jobs:
         uses: ./.github/actions/clang-tidy
         with:
           src: src/xarm-commander.cpp
-          inc: include
+          inc: lib
