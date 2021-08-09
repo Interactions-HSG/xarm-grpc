@@ -5,7 +5,7 @@ inputs:
   inc:
     description: "include directory"
     required: true
-    default: lib
+    default: libs
   src:
     description: "src file to lint"
     required: true
