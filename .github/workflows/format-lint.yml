@@ -18,7 +18,7 @@ jobs:
         with:
           submodules: "recursive"
       - name: build xarm
-        run: make -C lib/xArm-CPLUS-SDK xarm
+        run: make -C libs/xArm-CPLUS-SDK xarm
       - name: clang-format
         uses: ./.github/actions/clang-format
         with:
@@ -28,4 +28,4 @@ jobs:
         uses: ./.github/actions/clang-tidy
         with:
           src: src/xarm-commander.cpp
-          inc: include
+          inc: libs
