@@ -1,3 +1,6 @@
-[submodule "lib/xArm-CPLUS-SDK"]
-	path = lib/xArm-CPLUS-SDK
+[submodule "libs/xArm-CPLUS-SDK"]
+	path = libs/xArm-CPLUS-SDK
 	url = https://github.com/xArm-Developer/xArm-CPLUS-SDK.git
+[submodule "libs/CLI11"]
+	path = libs/CLI11
+	url = https://github.com/CLIUtils/CLI11.git

@@ -1,0 +1,19 @@
+---
+name: "clang-tidy"
+description: "Run clang-tidy"
+inputs:
+  inc:
+    description: "include directory"
+    required: true
+    default: libs
+  src:
+    description: "src file to lint"
+    required: true
+    default: src/main.cpp
+runs:
+  using: "docker"
+  image: "Dockerfile"
+  args:
+    - ${{ inputs.src }}
+    - "--"
+    - "-I${{ inputs.inc }}"

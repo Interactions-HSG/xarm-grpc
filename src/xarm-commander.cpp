@@ -1,10 +1,9 @@
-#include <CLI11.hpp>
 #include <easylogging++.h>
 #include <xarm/wrapper/xarm_api.h>
 
+#include <CLI11/include/CLI/CLI.hpp>
 #include <iostream>
 #include <string>
-
 
 #define INFO 1
 #define DEBUG 2
@@ -33,9 +32,15 @@ int main(int argc, char **argv) {
     app.option_defaults()->always_capture_default();
 
     // ===== FLAGS =====
-    int verbose_level = 0; // int for supporting multiple flags
+    int verbose_level = 0;  // int for supporting multiple flags
     app.add_flag_function(
-        "-v, --verbose", [&](int verbose_level) { el::Loggers::setVerboseLevel(verbose_level); VLOG(DEBUG) << "Verbose level: " << verbose_level << std::endl; }, "Verbose mode. To print debugging messages about the progress. Multiple -v flags increase the verbosity. The maximum is 3.");
+        "-v, --verbose",
+        [&](int verbose_level) {
+            el::Loggers::setVerboseLevel(verbose_level);
+            VLOG(DEBUG) << "Verbose level: " << verbose_level << std::endl;
+        },
+        "Verbose mode. To print debugging messages about the progress. "
+        "Multiple -v flags increase the verbosity. The maximum is 3.");
 
     // ===== OPTIONS =====
     std::string port;  // 130.82.171.9
@@ -64,7 +69,7 @@ int main(int argc, char **argv) {
         res = arm->motion_enable(enable_flag, servo_option);
 
         VLOG(INFO) << "Motion " << (enable_flag ? "enable" : "disable")
-                    << " - Response: " << res << "\n";
+                   << " - Response: " << res << "\n";
     });
 
     // Subcommand: set_state
@@ -79,7 +84,8 @@ int main(int argc, char **argv) {
         auto *arm = new XArmAPI(port);
         res = arm->set_state(state_option);
 
-        VLOG(INFO) << "Set state: " << state_option << " - Response: " << res << "\n";
+        VLOG(INFO) << "Set state: " << state_option << " - Response: " << res
+                   << "\n";
     });
 
     // Subcommand: set_mode
@@ -97,7 +103,8 @@ int main(int argc, char **argv) {
 
         res = arm->set_mode(mode_option);
 
-        VLOG(INFO) << "Set mode: " << mode_option << " - Response: " << res << "\n";
+        VLOG(INFO) << "Set mode: " << mode_option << " - Response: " << res
+                   << "\n";
     });
 
     // Subcommand: get_version
@@ -182,7 +189,7 @@ int main(int argc, char **argv) {
         VLOG(INFO) << "Set position - Response: " << res << "\n"
                    << "Position: ";
         VLOG(INFO) << "[ ";
-        for (float position : pose){
+        for (float position : pose) {
             VLOG(INFO) << position << " ";
         }
         VLOG(INFO) << "]";
