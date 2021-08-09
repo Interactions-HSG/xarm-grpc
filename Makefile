@@ -3,7 +3,7 @@ CXX = g++
 BUILD_DIR = ./build/
 INC_LIB = ./libs/
 SRC_DIR = ./src/
-XARM_SDK_LIB_DIR = ./lib/xArm-CPLUS-SDK/build/lib/
+XARM_SDK_LIB_DIR = ./libs/xArm-CPLUS-SDK/build/lib/
 TARGET = /usr/local/bin/
 SOURCE = $(SRC_DIR)$(COMMANDER_NAME).cpp
 
