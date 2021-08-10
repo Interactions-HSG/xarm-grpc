@@ -1,17 +1,11 @@
 ---
-name: clang-format and clang-tidy
+name: clang-tidy test
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-
+  workflow_dispatch:
 
 jobs:
-  run-format-lint:
+  run-lint-test:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -20,11 +14,6 @@ jobs:
           submodules: "recursive"
       - name: build xarm
         run: make -C libs/xArm-CPLUS-SDK xarm
-      - name: clang-format
-        uses: ./.github/actions/clang-format
-        with:
-          style: file
-          src: src/xarm-commander.cpp
       - name: clang-tidy
         uses: ./.github/actions/clang-tidy
         with:
