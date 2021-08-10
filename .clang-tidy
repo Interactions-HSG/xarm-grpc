@@ -1,5 +1,5 @@
 ---
-Checks:          'clang-diagnostic-*,clang-analyzer-*,modernize-*,diagnostic-*,analyzer-*,readability-*,performance-*,clang-analyzer-*,bugprone-*,cppcoreguidelines-*,google-*,llvm-*'
+Checks:          'clang-diagnostic-*,clang-analyzer-*,modernize-*,diagnostic-*,analyzer-*,readability-*,performance-*,clang-analyzer-*,bugprone-*,cppcoreguidelines-*,google-*,llvm-*,-cppcoreguidelines-pro-type-vararg'
 WarningsAsErrors: ''
 HeaderFilterRegex: ''
 AnalyzeTemporaryDtors: false

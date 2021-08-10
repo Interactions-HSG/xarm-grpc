@@ -5,7 +5,7 @@ INC_LIB = ./libs/
 SRC_DIR = ./src/
 XARM_SDK_LIB_DIR = ./libs/xArm-CPLUS-SDK/build/lib/
 TARGET = /usr/local/bin/
-SOURCE = $(SRC_DIR)$(COMMANDER_NAME).cpp $(INC_LIB)easylogginggpp/src/easylogging++.cc
+SOURCE = $(SRC_DIR)$(COMMANDER_NAME).cpp $(INC_LIB)easyloggingpp/src/easylogging++.cc
 
 COMMANDER_NAME = xarm-commander
 

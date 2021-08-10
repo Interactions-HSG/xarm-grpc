@@ -5,15 +5,11 @@
 #include <iostream>
 #include <string>
 
-#define INFO 1
-#define DEBUG 2
-#define EVALUATION 3
-
 INITIALIZE_EASYLOGGINGPP
 
 int main(int argc, char **argv) {
-    // Default values (to avoid magic numbers) => not sure if this is the
-    // way to go (maybe using namespace, seperate headerfile?)
+    // ===== CONSTANTS =====
+    // Default values (to avoid magic numbers)
     constexpr float kDefaultPosX = 300;
     constexpr float kDefaultPosY = 0;
     constexpr float kDefaultPosZ = 200;
@@ -23,8 +19,15 @@ int main(int argc, char **argv) {
 
     constexpr int kAllServo = 8;
 
+    // Logging levels
+    constexpr int kLogInfo = 1;
+    constexpr int kLogDebug = 2;
+    constexpr int kLogEval = 3;
+
+    // ===== INIT =====
     int res{1};
 
+    // CLI11 xarm-commander app
     CLI::App app{
         "xarm-commander: a command line tool for controlling the xArm7."};
 
@@ -37,15 +40,14 @@ int main(int argc, char **argv) {
         "-v, --verbose",
         [&](int verbose_level) {
             el::Loggers::setVerboseLevel(verbose_level);
-            VLOG(DEBUG) << "Verbose level: " << verbose_level << std::endl;
+            VLOG(kLogDebug) << "Verbose level: " << verbose_level << std::endl;
         },
         "Verbose mode. To print debugging messages about the progress. "
         "Multiple -v flags increase the verbosity. The maximum is 3.");
 
     // ===== OPTIONS =====
-    std::string port;  // 130.82.171.9
-    app.add_option("-p, --port", port, "ip-address of xArm control box")
-        ->required();
+    std::string port = "130.82.171.9";
+    app.add_option("-p, --port", port, "ip-address of xArm control box");
 
     // ===== SUBCOMMANDS =====
     app.require_subcommand(1);  // set max number of subcommands to 1
@@ -68,8 +70,10 @@ int main(int argc, char **argv) {
         auto *arm = new XArmAPI(port);
         res = arm->motion_enable(enable_flag, servo_option);
 
-        VLOG(INFO) << "Motion " << (enable_flag ? "enable" : "disable")
-                   << " - Response: " << res << "\n";
+        VLOG(kLogInfo) << "Command: motion_enable "
+                       << (enable_flag ? "enable" : "disable") << "\n";
+        std::cout << "{\"responseCode:\" " << res << "}"
+                  << "\n";
     });
 
     // Subcommand: set_state
@@ -84,8 +88,9 @@ int main(int argc, char **argv) {
         auto *arm = new XArmAPI(port);
         res = arm->set_state(state_option);
 
-        VLOG(INFO) << "Set state: " << state_option << " - Response: " << res
-                   << "\n";
+        VLOG(kLogInfo) << "Command: set_state: " << state_option << "\n";
+        std::cout << "{\"responseCode:\" " << res << "}"
+                  << "\n";
     });
 
     // Subcommand: set_mode
@@ -103,8 +108,9 @@ int main(int argc, char **argv) {
 
         res = arm->set_mode(mode_option);
 
-        VLOG(INFO) << "Set mode: " << mode_option << " - Response: " << res
-                   << "\n";
+        VLOG(kLogInfo) << "Command: set_mode " << mode_option << "\n";
+        std::cout << "{\"responseCode:\" " << res << "}"
+                  << "\n";
     });
 
     // Subcommand: get_version
@@ -116,9 +122,13 @@ int main(int argc, char **argv) {
                                                // even needed or arm->version
                                                // holds an updated version
 
-        VLOG(INFO) << "Get version - Response: " << res << "\n"
-                   << "Version: ";
-        std::cout << arm->version;
+        VLOG(kLogInfo) << "Command: get_version"
+                       << "\n";
+        std::cout << "{\"responseCode:\" " << res << ", \n"
+                  << "\"responseValue\": "
+                  << "{\"version\": " << arm->version << "}"
+                  << "}"
+                  << "\n";
     });
 
     // Subcommand: get_state
@@ -129,9 +139,13 @@ int main(int argc, char **argv) {
 
         res = arm->get_state(&arm->state);
 
-        VLOG(INFO) << "Get state - Response: " << res << "\n"
-                   << "State: ";
-        std::cout << arm->state;
+        VLOG(kLogInfo) << "Command: get_state "
+                       << "\n";
+        std::cout << "{\"responseCode:\" " << res << ", \n"
+                  << "\"responseValue\": "
+                  << "{\"state\": " << arm->state << "}"
+                  << "}"
+                  << "\n";
     });
 
     // Subcommand: get_position
@@ -142,19 +156,26 @@ int main(int argc, char **argv) {
         auto *arm = new XArmAPI(port);
         res = arm->get_position(arm->position);
 
-        VLOG(INFO) << "Get position - Response: " << res << "\n"
-                   << "Position: ";
-        std::cout << "[ ";
-        for (int i = 0; i < 6; i++) {
-            std::cout << arm->position[i] << " ";
-        }
-        std::cout << "]";
+        VLOG(kLogInfo) << "Command: get_position"
+                       << "\n";
+        std::cout << "{\"responseCode:\" " << res << ", \n"
+                  << "\"responseValue\": "
+                  << "{\"position\": {"
+                  << "\"x\": " << arm->position[0] << ","
+                  << "\"y\": " << arm->position[1] << ","
+                  << "\"z\": " << arm->position[2] << ","
+                  << "\"roll\": " << arm->position[3] << ","
+                  << "\"pitch\": " << arm->position[4] << ","
+                  << "\"yaw\": " << arm->position[5] << "}"
+                  << "}"
+                  << "}"
+                  << "\n";
     });
 
     // Subcommand: set_position
     auto *set_position = app.add_subcommand(
         "set_position",
-        "send a set_position command to get the cartesian position");
+        "send a set_position command to set the cartesian position");
 
     float x_option = kDefaultPosX;
     set_position->add_option("-x", x_option, "x(mm)");
@@ -186,13 +207,15 @@ int main(int argc, char **argv) {
 
         res = arm->set_position(pose, wait_option);
 
-        VLOG(INFO) << "Set position - Response: " << res << "\n"
-                   << "Position: ";
-        VLOG(INFO) << "[ ";
+        VLOG(kLogInfo) << "Command: set_position"
+                       << "\n"
+                       << "Position: [";
         for (float position : pose) {
-            VLOG(INFO) << position << " ";
+            VLOG(kLogInfo) << position << " ";
         }
-        VLOG(INFO) << "]";
+        VLOG(kLogInfo) << "]";
+        std::cout << "{\"responseCode:\" " << res << "}"
+                  << "\n";
     });
 
     CLI11_PARSE(app, argc, argv);
