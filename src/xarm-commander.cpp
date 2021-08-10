@@ -27,6 +27,14 @@ int main(int argc, char **argv) {
     // ===== INIT =====
     int res{1};
 
+    // Logger configurations
+    el::Configurations loggerConf;
+    loggerConf.setToDefault();
+    // Formatting
+    loggerConf.set(el::Level::Verbose, el::ConfigurationType::Format,
+                   "%datetime [%level-%vlevel] %msg");
+    el::Loggers::reconfigureLogger("default", loggerConf);
+
     // CLI11 xarm-commander app
     CLI::App app{
         "xarm-commander: a command line tool for controlling the xArm7."};
