@@ -1,6 +1,6 @@
 CXX = g++
 
-BUILD_DIR = ./build/
+BUILD_DIR = ./bin/
 INC_LIB = ./libs/
 SRC_DIR = ./src/
 XARM_SDK_LIB_DIR = ./libs/xArm-CPLUS-SDK/build/lib/
