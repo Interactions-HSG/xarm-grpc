@@ -1,5 +1,5 @@
 ---
-Checks:          'clang-diagnostic-*,clang-analyzer-*,modernize-*,diagnostic-*,analyzer-*,readability-*,performance-*,clang-analyzer-*,bugprone-*,cppcoreguidelines-*,google-*,llvm-*,-cppcoreguidelines-pro-type-vararg'
+Checks:          'clang-diagnostic-*,clang-analyzer-*,modernize-*,diagnostic-*,analyzer-*,readability-*,performance-*,clang-analyzer-*,bugprone-*,cppcoreguidelines-*,google-*,llvm-*,-cppcoreguidelines-pro-type-vararg,-cppcoreguidelines-pro-bounds-array-to-pointer-decay,-cppcoreguidelines-pro-bounds-array-to-pointer-decay'
 WarningsAsErrors: ''
 HeaderFilterRegex: ''
 AnalyzeTemporaryDtors: false
