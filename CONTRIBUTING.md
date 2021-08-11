@@ -13,7 +13,7 @@ clang-format -i -style=file src/xarm-commander.cpp
 Currently, clang-tidy is used for linting (see `.clang-tidy`).
 To lint the source code, run the following:
 ```
-clang-tidy src/xarm-commander.cpp -- -Iinclude
+clang-tidy src/xarm-commander.cpp -- -Ilibs
 ```
 
 ## Commits

@@ -24,9 +24,9 @@ constexpr int kLogEval = 3;
 
 INITIALIZE_EASYLOGGINGPP
 
-auto InitXarm(const std::string &port) -> XArmAPI * {
+auto InitXarm(const std::string &xarm_ip) -> XArmAPI * {
     // TODO(jo-bru): redirect stdout to logger (using pipes?)
-    auto *arm = new XArmAPI(port);
+    auto *arm = new XArmAPI(xarm_ip);
     return arm;
 }
 
@@ -62,8 +62,8 @@ int main(int argc, char **argv) {
         "Multiple -v flags increase the verbosity. The maximum is 3.");
 
     // ===== OPTIONS =====
-    std::string port = "130.82.171.9";
-    app.add_option("-p, --port", port, "ip-address of xArm control box");
+    std::string xarm_ip = "localhost";
+    app.add_option("-i, --ip", xarm_ip, "ip-address of xArm control box");
 
     // ===== SUBCOMMANDS =====
     app.require_subcommand(1);  // set max number of subcommands to 1
@@ -83,7 +83,7 @@ int main(int argc, char **argv) {
                               "(default: 8 - enable/disable all servo)");
 
     motion_enable->callback([&]() {
-        auto *arm = InitXarm(port);
+        auto *arm = InitXarm(xarm_ip);
         res = arm->motion_enable(enable_flag, servo_option);
 
         VLOG(constants::kLogInfo)
@@ -102,7 +102,7 @@ int main(int argc, char **argv) {
                           "state, 0: sport, 3: pause, 4: stop");
 
     set_state->callback([&]() {
-        auto *arm = InitXarm(port);
+        auto *arm = InitXarm(xarm_ip);
         res = arm->set_state(state_option);
 
         VLOG(constants::kLogInfo)
@@ -122,7 +122,7 @@ int main(int argc, char **argv) {
         "mode, 3: cartesian teaching mode (invalid), 4: simulation mode");
 
     set_mode->callback([&]() {
-        auto *arm = InitXarm(port);
+        auto *arm = InitXarm(xarm_ip);
 
         res = arm->set_mode(mode_option);
 
@@ -136,7 +136,7 @@ int main(int argc, char **argv) {
     auto *get_version =
         app.add_subcommand("get_version", "send a get_version command");
     get_version->callback([&]() {
-        auto *arm = InitXarm(port);
+        auto *arm = InitXarm(xarm_ip);
         res = arm->get_version(arm->version);  // TODO(jo-bru): check if this is
                                                // even needed or arm->version
                                                // holds an updated version
@@ -154,7 +154,7 @@ int main(int argc, char **argv) {
     auto *get_state =
         app.add_subcommand("get_state", "send a get_state commmand");
     get_state->callback([&]() {
-        auto *arm = InitXarm(port);
+        auto *arm = InitXarm(xarm_ip);
 
         res = arm->get_state(&arm->state);
 
@@ -172,7 +172,7 @@ int main(int argc, char **argv) {
         "get_position",
         "send a get_position command to get the cartesian position");
     get_position->callback([&]() {
-        auto *arm = InitXarm(port);
+        auto *arm = InitXarm(xarm_ip);
         res = arm->get_position(arm->position);
 
         VLOG(constants::kLogInfo) << "Command: get_position"
@@ -214,7 +214,7 @@ int main(int argc, char **argv) {
                              "whether to wait for the arm to complete");
 
     set_position->callback([&]() {
-        auto *arm = InitXarm(port);
+        auto *arm = InitXarm(xarm_ip);
 
         float pose[6];
         pose[0] = x_option;
