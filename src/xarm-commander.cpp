@@ -1,24 +1,48 @@
-
+#include <easyloggingpp/src/easylogging++.h>
 #include <xarm/wrapper/xarm_api.h>
 
 #include <CLI11/include/CLI/CLI.hpp>
 #include <iostream>
 #include <string>
 
+namespace constants {
+// Default values (to avoid magic numbers)
+constexpr float kDefaultPosX = 300;
+constexpr float kDefaultPosY = 0;
+constexpr float kDefaultPosZ = 200;
+constexpr float kDefaultPosRoll = 180;  // [Deg] by default
+constexpr float kDefaultPosPitch = 0;   // [Deg] by default
+constexpr float kDefaultPosYaw = 0;     // [Deg] by default
+
+constexpr int kAllServo = 8;
+
+// Logging levels
+constexpr int kLogInfo = 1;
+constexpr int kLogDebug = 2;
+constexpr int kLogEval = 3;
+}  // namespace constants
+
+INITIALIZE_EASYLOGGINGPP
+
+auto InitXarm(const std::string &xarm_ip) -> XArmAPI * {
+    // TODO(jo-bru): redirect stdout to logger (using pipes?)
+    auto *arm = new XArmAPI(xarm_ip);
+    return arm;
+}
+
 int main(int argc, char **argv) {
-    // Default values (to avoid magic numbers) => not sure if this is the
-    // way to go (maybe using namespace, seperate headerfile?)
-    constexpr float kDefaultPosX = 300;
-    constexpr float kDefaultPosY = 0;
-    constexpr float kDefaultPosZ = 200;
-    constexpr float kDefaultPosRoll = 180;  // [Deg] by default
-    constexpr float kDefaultPosPitch = 0;   // [Deg] by default
-    constexpr float kDefaultPosYaw = 0;     // [Deg] by default
-
-    constexpr int kAllServo = 8;
-
+    // ===== INIT =====
     int res{1};
 
+    // Logger configurations
+    el::Configurations loggerConf;
+    loggerConf.setToDefault();
+    // Formatting
+    loggerConf.set(el::Level::Verbose, el::ConfigurationType::Format,
+                   "%datetime [%level-%vlevel] %msg");
+    el::Loggers::reconfigureLogger("default", loggerConf);
+
+    // CLI11 xarm-commander app
     CLI::App app{
         "xarm-commander: a command line tool for controlling the xArm7."};
 
@@ -26,15 +50,20 @@ int main(int argc, char **argv) {
     app.option_defaults()->always_capture_default();
 
     // ===== FLAGS =====
-    bool print_mode{false};
-    app.add_flag("-v, --verbose", print_mode,
-                 "verbose mode.");  // TODO(jo-bru): multilevel verbose
-                                    // modes + logger
+    int verbose_level = 0;  // int for supporting multiple flags
+    app.add_flag_function(
+        "-v, --verbose",
+        [&](int verbose_level) {
+            el::Loggers::setVerboseLevel(verbose_level);
+            VLOG(constants::kLogDebug)
+                << "Verbose level: " << verbose_level << std::endl;
+        },
+        "Verbose mode. To print debugging messages about the progress. "
+        "Multiple -v flags increase the verbosity. The maximum is 3.");
 
     // ===== OPTIONS =====
-    std::string port;  // 130.82.171.9
-    app.add_option("-p, --port", port, "ip-address of xArm control box")
-        ->required();
+    std::string xarm_ip = "localhost";
+    app.add_option("-i, --ip", xarm_ip, "ip-address of xArm control box");
 
     // ===== SUBCOMMANDS =====
     app.require_subcommand(1);  // set max number of subcommands to 1
@@ -48,19 +77,20 @@ int main(int argc, char **argv) {
                             enable_flag,
                             "enable or disable the xArm (default: --enable)");
 
-    int servo_option{kAllServo};
+    int servo_option{constants::kAllServo};
     motion_enable->add_option("-s, --servo", servo_option,
                               "choose servo [1-8] to be enabled/disabled, "
                               "(default: 8 - enable/disable all servo)");
 
     motion_enable->callback([&]() {
-        auto *arm = new XArmAPI(port);
+        auto *arm = InitXarm(xarm_ip);
         res = arm->motion_enable(enable_flag, servo_option);
 
-        if (print_mode) {
-            std::cout << "Motion " << (enable_flag ? "enable" : "disable")
-                      << " - Response: " << res << "\n";
-        }
+        VLOG(constants::kLogInfo)
+            << "Command: motion_enable " << (enable_flag ? "enable" : "disable")
+            << "\n";
+        std::cout << "{\"responseCode:\" " << res << "}"
+                  << "\n";
     });
 
     // Subcommand: set_state
@@ -72,13 +102,13 @@ int main(int argc, char **argv) {
                           "state, 0: sport, 3: pause, 4: stop");
 
     set_state->callback([&]() {
-        auto *arm = new XArmAPI(port);
+        auto *arm = InitXarm(xarm_ip);
         res = arm->set_state(state_option);
 
-        if (print_mode) {
-            std::cout << "Set state: " << state_option << " - Response: " << res
-                      << "\n";
-        }
+        VLOG(constants::kLogInfo)
+            << "Command: set_state: " << state_option << "\n";
+        std::cout << "{\"responseCode:\" " << res << "}"
+                  << "\n";
     });
 
     // Subcommand: set_mode
@@ -92,43 +122,49 @@ int main(int argc, char **argv) {
         "mode, 3: cartesian teaching mode (invalid), 4: simulation mode");
 
     set_mode->callback([&]() {
-        auto *arm = new XArmAPI(port);
+        auto *arm = InitXarm(xarm_ip);
+
         res = arm->set_mode(mode_option);
 
-        if (print_mode) {
-            std::cout << "Set mode: " << mode_option << " - Response: " << res
-                      << "\n";
-        }
+        VLOG(constants::kLogInfo)
+            << "Command: set_mode " << mode_option << "\n";
+        std::cout << "{\"responseCode:\" " << res << "}"
+                  << "\n";
     });
 
     // Subcommand: get_version
     auto *get_version =
         app.add_subcommand("get_version", "send a get_version command");
     get_version->callback([&]() {
-        auto *arm = new XArmAPI(port);
+        auto *arm = InitXarm(xarm_ip);
         res = arm->get_version(arm->version);  // TODO(jo-bru): check if this is
                                                // even needed or arm->version
                                                // holds an updated version
 
-        if (print_mode) {
-            std::cout << "Get version - Response: " << res << "\n"
-                      << "Version: ";
-        }
-        std::cout << arm->version;
+        VLOG(constants::kLogInfo) << "Command: get_version"
+                                  << "\n";
+        std::cout << "{\"responseCode:\" " << res << ", \n"
+                  << "\"responseValue\": "
+                  << "{\"version\": " << arm->version << "}"
+                  << "}"
+                  << "\n";
     });
 
     // Subcommand: get_state
     auto *get_state =
         app.add_subcommand("get_state", "send a get_state commmand");
     get_state->callback([&]() {
-        auto *arm = new XArmAPI(port);
+        auto *arm = InitXarm(xarm_ip);
+
         res = arm->get_state(&arm->state);
 
-        if (print_mode) {
-            std::cout << "Get state - Response: " << res << "\n"
-                      << "State: ";
-        }
-        std::cout << arm->state;
+        VLOG(constants::kLogInfo) << "Command: get_state "
+                                  << "\n";
+        std::cout << "{\"responseCode:\" " << res << ", \n"
+                  << "\"responseValue\": "
+                  << "{\"state\": " << arm->state << "}"
+                  << "}"
+                  << "\n";
     });
 
     // Subcommand: get_position
@@ -136,36 +172,41 @@ int main(int argc, char **argv) {
         "get_position",
         "send a get_position command to get the cartesian position");
     get_position->callback([&]() {
-        auto *arm = new XArmAPI(port);
+        auto *arm = InitXarm(xarm_ip);
         res = arm->get_position(arm->position);
 
-        if (print_mode) {
-            std::cout << "Get position - Response: " << res << "\n"
-                      << "Position: ";
-        }
-        std::cout << "[ ";
-        for (int i = 0; i < 6; i++) {
-            std::cout << arm->position[i] << " ";
-        }
-        std::cout << "]";
+        VLOG(constants::kLogInfo) << "Command: get_position"
+                                  << "\n";
+        std::cout << "{\"responseCode:\" " << res << ", \n"
+                  << "\"responseValue\": "
+                  << "{\"position\": {"
+                  << "\"x\": " << arm->position[0] << ","
+                  << "\"y\": " << arm->position[1] << ","
+                  << "\"z\": " << arm->position[2] << ","
+                  << "\"roll\": " << arm->position[3] << ","
+                  << "\"pitch\": " << arm->position[4] << ","
+                  << "\"yaw\": " << arm->position[5] << "}"
+                  << "}"
+                  << "}"
+                  << "\n";
     });
 
     // Subcommand: set_position
     auto *set_position = app.add_subcommand(
         "set_position",
-        "send a set_position command to get the cartesian position");
+        "send a set_position command to set the cartesian position");
 
-    float x_option = kDefaultPosX;
+    float x_option = constants::kDefaultPosX;
     set_position->add_option("-x", x_option, "x(mm)");
-    float y_option = kDefaultPosYaw;
+    float y_option = constants::kDefaultPosYaw;
     set_position->add_option("-y", y_option, "y(mm)");
-    float z_option = kDefaultPosZ;
+    float z_option = constants::kDefaultPosZ;
     set_position->add_option("-z", z_option, "z(mm)");
-    float roll_option = kDefaultPosRoll;
+    float roll_option = constants::kDefaultPosRoll;
     set_position->add_option("-r, --roll", roll_option, "roll(rad or °)");
-    float pitch_option = kDefaultPosPitch;
+    float pitch_option = constants::kDefaultPosPitch;
     set_position->add_option("-p, --pitch", pitch_option, "pitch(rad or °)");
-    float yaw_option = kDefaultPosYaw;
+    float yaw_option = constants::kDefaultPosYaw;
     set_position->add_option("-w, --yaw", yaw_option, "yaw(rad or °)");
 
     bool wait_option = false;
@@ -173,7 +214,7 @@ int main(int argc, char **argv) {
                              "whether to wait for the arm to complete");
 
     set_position->callback([&]() {
-        auto *arm = new XArmAPI(port);
+        auto *arm = InitXarm(xarm_ip);
 
         float pose[6];
         pose[0] = x_option;
@@ -185,17 +226,15 @@ int main(int argc, char **argv) {
 
         res = arm->set_position(pose, wait_option);
 
-        if (print_mode) {
-            std::cout << "Set position - Response: " << res << "\n"
-                      << "Position: ";
-            std::cout << "[ ";
-            // range-based for loop
-            for (float position : pose) {
-                std::cout << position << " ";
-            }
-            std::cout << "]"
-                      << "\n";
+        VLOG(constants::kLogInfo) << "Command: set_position"
+                                  << "\n"
+                                  << "Position: [";
+        for (float position : pose) {
+            VLOG(constants::kLogInfo) << position << " ";
         }
+        VLOG(constants::kLogInfo) << "]";
+        std::cout << "{\"responseCode:\" " << res << "}"
+                  << "\n";
     });
 
     CLI11_PARSE(app, argc, argv);
