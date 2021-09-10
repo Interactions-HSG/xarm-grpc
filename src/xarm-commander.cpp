@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
         VLOG(constants::kLogInfo)
             << "Command: motion_enable " << (enable_flag ? "enable" : "disable")
             << "\n";
-        std::cout << "{\"responseCode:\" " << res << "}"
+        std::cout << "{\"responseCode\": " << res << "}"
                   << "\n";
     });
 
@@ -107,7 +107,7 @@ int main(int argc, char **argv) {
 
         VLOG(constants::kLogInfo)
             << "Command: set_state: " << state_option << "\n";
-        std::cout << "{\"responseCode:\" " << res << "}"
+        std::cout << "{\"responseCode\": " << res << "}"
                   << "\n";
     });
 
@@ -128,7 +128,7 @@ int main(int argc, char **argv) {
 
         VLOG(constants::kLogInfo)
             << "Command: set_mode " << mode_option << "\n";
-        std::cout << "{\"responseCode:\" " << res << "}"
+        std::cout << "{\"responseCode\": " << res << "}"
                   << "\n";
     });
 
@@ -143,9 +143,9 @@ int main(int argc, char **argv) {
 
         VLOG(constants::kLogInfo) << "Command: get_version"
                                   << "\n";
-        std::cout << "{\"responseCode:\" " << res << ", \n"
+        std::cout << "{\"responseCode\": " << res << ", \n"
                   << "\"responseValue\": "
-                  << "{\"version\": " << arm->version << "}"
+                  << "{\"version\": \"" << arm->version << "\"}"
                   << "}"
                   << "\n";
     });
@@ -160,7 +160,7 @@ int main(int argc, char **argv) {
 
         VLOG(constants::kLogInfo) << "Command: get_state "
                                   << "\n";
-        std::cout << "{\"responseCode:\" " << res << ", \n"
+        std::cout << "{\"responseCode\": " << res << ", \n"
                   << "\"responseValue\": "
                   << "{\"state\": " << arm->state << "}"
                   << "}"
@@ -177,7 +177,7 @@ int main(int argc, char **argv) {
 
         VLOG(constants::kLogInfo) << "Command: get_position"
                                   << "\n";
-        std::cout << "{\"responseCode:\" " << res << ", \n"
+        std::cout << "{\"responseCode\": " << res << ", \n"
                   << "\"responseValue\": "
                   << "{\"position\": {"
                   << "\"x\": " << arm->position[0] << ","
@@ -233,7 +233,7 @@ int main(int argc, char **argv) {
             VLOG(constants::kLogInfo) << position << " ";
         }
         VLOG(constants::kLogInfo) << "]";
-        std::cout << "{\"responseCode:\" " << res << "}"
+        std::cout << "{\"responseCode\": " << res << "}"
                   << "\n";
     });
 

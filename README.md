@@ -35,6 +35,14 @@ sudo make uninstall
 make clean
 ```
 
+## Examples
+The `examples` directory contains examples on how to integrate the xarm-commander into different languages.  
+Currently, the following examples are provided:
+- `bash_routine.sh`: A simple collection of commands called from a bash script.
+- `node_async.js`: Integration into Javascript using `async` functions.
+- `node_promise.js`: Integration into Javascript using `promises`.
+
+
 ## Synopsis
 For further description about usage of the xarm-commander, use -h or --help:
 ```
