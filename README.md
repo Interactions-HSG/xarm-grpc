@@ -46,13 +46,14 @@ Currently, the following examples are provided:
 
 ### `node_async.js`: Integration into Javascript using `async` functions.
 ```console
-~/xarm-commander %
+~/xarm-commander % node examples/node_async.js <IP address of xArm7 control box>
 ```
 
 ### `node_promise.js`: Integration into Javascript using `promises`.
 ```console
-~/xarm-commander %
+~/xarm-commander % node examples/node_promise.js <IP address of xArm7 control box>
 ```
+> :bulb: NodeJS version 10+ (e.g., 10.13.0 LTS) is required to run the `node_*` examples.
 
 ## Synopsis
 For further description about usage of the xarm-commander, use -h or --help:
