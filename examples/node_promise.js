@@ -2,7 +2,8 @@
 const util = require('util');
 const execFilePromise = util.promisify(require('child_process').execFile);
 
-const IPaddress = "130.82.171.9" // xarm7-2 
+// read IP address of xArm control box
+const IPaddress = process.argv[2];
 
 // ===== using promise =====
 
