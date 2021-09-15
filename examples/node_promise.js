@@ -10,7 +10,7 @@ const IPaddress = process.argv[2];
 function sendCommand(args) {
     return new Promise((resolve, reject) => {
         // send command
-        execFilePromise('xarm-commander', args)
+        execFilePromise('bin/xarm-commander', args)
             .then(({ stdout }) => {
                 console.log(stdout);
                 resolve()

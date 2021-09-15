@@ -7,7 +7,7 @@ const IPaddress = process.argv[2];
 // ===== using async + await =====
 
 async function sendCommand(args) {
-    const { stdout } = await execFilePromise('xarm-commander', args);
+    const { stdout } = await execFilePromise('bin/xarm-commander', args);
     console.log(stdout);
 }
 
