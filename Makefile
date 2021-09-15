@@ -22,4 +22,4 @@ uninstall:
 	rm $(TARGET)$(COMMANDER_NAME)
 
 clean:
-	rm -rf ./build
+	rm -rf $(BUILD_DIR)
