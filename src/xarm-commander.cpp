@@ -2,6 +2,7 @@
 #include <xarm/wrapper/xarm_api.h>
 
 #include <CLI11/include/CLI/CLI.hpp>
+#include <csignal>
 #include <iostream>
 #include <string>
 
@@ -68,6 +69,7 @@ int main(int argc, char **argv) {
     // ===== SUBCOMMANDS =====
     app.require_subcommand(1);  // set max number of subcommands to 1
 
+    // ===== properties =====
     // Subcommand: motion_enable
     auto *motion_enable =
         app.add_subcommand("motion_enable", "send a motion_enable command");
@@ -191,6 +193,7 @@ int main(int argc, char **argv) {
                   << "\n";
     });
 
+    // ===== actions =====
     // Subcommand: set_position
     auto *set_position = app.add_subcommand(
         "set_position",
@@ -235,6 +238,67 @@ int main(int argc, char **argv) {
         VLOG(constants::kLogInfo) << "]";
         std::cout << "{\"responseCode\": " << res << "}"
                   << "\n";
+    });
+
+    // ===== events =====
+    // start event listener
+    auto *event_listener =
+        app.add_subcommand("event_listener", "start the event listener");
+
+    event_listener->callback([&]() {
+        auto *arm = InitXarm(xarm_ip);
+
+        // terminate event listener
+        auto signalHandler = [](int signum) {
+            VLOG(constants::kLogInfo)
+                << "Interrupt signal (" << signum << ") received.\n";
+
+            // cleanup and close up stuff here
+            // terminate program
+            // TODO: do we need to release callbacks if the process is ended?
+            // arm->release_report_location_callback(
+            //     events::report_location_callback);
+            // arm->release_connect_changed_callback(
+            //     events::connect_changed_callback);
+            // arm->release_state_changed_callback(events::state_changed_callback);
+            // arm->release_mode_changed_callback(events::mode_changed_callback);
+
+            VLOG(constants::kLogInfo) << "All event listeners released.";
+            exit(signum);
+        };
+
+        // register signal SIGINT and signal handler
+        signal(SIGINT, signalHandler);
+
+        // register events
+        arm->register_report_location_callback(
+            [&](const fp32 *pose, const fp32 *angles) {
+                std::cout << "EVENT: report location\n";
+                print_nvect("pose    = ", (fp32 *)pose, 6);
+                print_nvect("angles  = ", (fp32 *)angles, 7);
+            });
+
+        arm->register_connect_changed_callback(
+            [=](bool connected, bool reported) {
+                std::cout << "EVENT: connect changed\n";
+                std::cout << "{ \"connected\": " << connected
+                          << ",\n\"reported\": " << reported << "}";
+            });
+
+        arm->register_state_changed_callback([=](int state) {
+            std::cout << "EVENT: state changed\n";
+            std::cout << "{ \"state\": " << state << "}";
+        });
+
+        arm->register_mode_changed_callback([=](int mode) {
+            std::cout << "EVENT: mode changed\n";
+            std::cout << "{ \"mode\": " << mode << "}";
+        });
+
+        while (1) {
+            std::cout << "Going to sleep....\n";
+            sleep(1);
+        }
     });
 
     CLI11_PARSE(app, argc, argv);
