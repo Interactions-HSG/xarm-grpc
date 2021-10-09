@@ -154,9 +154,30 @@ int main(int argc, char **argv) {
     auto *get_state =
         app.add_subcommand("get_state", "send a get_state commmand");
     get_state->callback([&]() {
+        std::chrono::steady_clock::time_point begin =
+            std::chrono::steady_clock::now();
+
         auto *arm = InitXarm(xarm_ip);
 
+        std::chrono::steady_clock::time_point middle =
+            std::chrono::steady_clock::now();
+
         res = arm->get_state(&arm->state);
+
+        std::chrono::steady_clock::time_point end =
+            std::chrono::steady_clock::now();
+
+        std::cout << "TIME-1: "
+                  << std::chrono::duration_cast<std::chrono::microseconds>(
+                         middle - begin)
+                         .count()
+                  << std::endl;
+
+        std::cout << "TIME-2: "
+                  << std::chrono::duration_cast<std::chrono::microseconds>(
+                         end - middle)
+                         .count()
+                  << std::endl;
 
         VLOG(constants::kLogInfo) << "Command: get_state "
                                   << "\n";
