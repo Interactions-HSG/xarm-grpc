@@ -1,4 +1,7 @@
 bin/
+cmake/build
+protos/*pb.cc
+protos/*pb.h
 .vscode/
 
 # Logs

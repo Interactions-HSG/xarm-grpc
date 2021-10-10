@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package xapi;
+
+// See xArm-CPLUS-SDK/include/xarm/wrapper/xarm_api.h
+// this service exposes an XArmAPI class object
+
+service XAPI {
+  // Get the xArm version
+  rpc GetVersion (Empty) returns (Version);
+  rpc Initialize (InitParam) returns (Empty);
+}
+
+message Empty {
+}
+
+message InitParam {
+  string ip_address = 1;
+  bool is_radian = 2;
+  bool do_not_open = 3;
+  bool check_tcp_limit = 4;
+  bool check_joint_limit = 5;
+  bool check_cmdnum_limit = 6;
+  bool check_robot_sn = 7;
+  bool check_is_ready = 8;
+  bool check_is_pause = 9;
+  int32 max_callback_thread_count = 10;
+  int32 max_cmdnum = 11;
+  int32 init_axis = 12;
+  bool debug = 13;
+  string report_type = 14;
+}
+
+message Version {
+  int32 status_code = 1;
+  string version = 2;
+}
+
+// See the definition of the status_code at
+// https://github.com/xArm-Developer/xArm-CPLUS-SDK/blob/master/doc/xarm_api_code.md
+message Status {
+  int32 code = 1;
+}
