@@ -1,5 +1,5 @@
 ---
-name: clang-format and clang-tidy
+name: build, clang-format, and clang-tidy
 
 on:
   push:
@@ -19,13 +19,32 @@ jobs:
           submodules: "recursive"
       - name: build xarm
         run: make -C libs/xArm-CPLUS-SDK xarm
-      - name: clang-format
+      #- name: install cmake
+      #  run:
+      #- name: install grpc and protobuf
+      #  run:
+      #- name: create a build directory
+      #  run: mkdir -p cmake/build
+      #- name: generate Makefile
+      #  run: cmake -DCMAKE_PREFIX_PATH=~/.local ../..
+      #  working-directory: ./cmake/build
+      - name: clang-format xarm_commander.cc
         uses: ./.github/actions/clang-format
         with:
           style: file
-          src: src/xarm-commander.cpp
+          src: xarm_commander.cc
+      - name: clang-format xarm_daemon.cc
+        uses: ./.github/actions/clang-format
+        with:
+          style: file
+          src: xarm_daemon.cc
       - name: clang-tidy
         uses: ./.github/actions/clang-tidy
         with:
-          src: src/xarm-commander.cpp
+          src: xarm_commander.cc
+          inc: libs
+      - name: clang-tidy
+        uses: ./.github/actions/clang-tidy
+        with:
+          src: xarm_daemon.cc
           inc: libs

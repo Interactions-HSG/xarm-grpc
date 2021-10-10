@@ -21,17 +21,7 @@ The proto file is defined in `proto/xapi.proto` based on [`xarm_api.h`](https://
 ### xArm-CPLUS-SDK
 To use the xarm-commander, first install the xArm-PLUS-SDK library:
 ```console
-$ sudo make -C libs/xArm-CPLUS-SDK xarm install
-```
-
-uninstall:
-```console
-$ sudo make -C libs/xArm-CPLUS-SDK uninstall
-```
-
-clean the build folder of the xarm library
-```console
-$ sudo make -C libs/xArm-CPLUS-SDK clean
+$ make -C libs/xArm-CPLUS-SDK xarm
 ```
 
 ### cmake, gRPC and Protocol Buffers
