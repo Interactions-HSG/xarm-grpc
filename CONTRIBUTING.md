@@ -7,13 +7,13 @@ This document provides general information for contributing to xarm-commander.
 The formatting style used in this project is Google with an indent of 4 (see `.clang-format`).
 To format the source code, run the following:
 ```
-clang-format -i -style=file src/xarm-commander.cpp
+clang-format -i -style=file *.cc
 ```
 
 Currently, clang-tidy is used for linting (see `.clang-tidy`).
 To lint the source code, run the following:
 ```
-clang-tidy src/xarm-commander.cpp -- -Ilibs
+clang-tidy *.cc -- -Ilibs
 ```
 
 ## Commits
