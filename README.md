@@ -7,8 +7,8 @@ $ git clone git@github.com:Interactions-HSG/xarm-commander.git --recursive
 ```
 
 This project consists of two artifacts:
-- `xarm-commander`: The main CLI program to run commands on xArms implemented as a gRPC client.
-- `xarm-daemon`: A daemon responsible for the Modbus/TCP connection manager and packet generation (i.e., `xArmAPI` object) implemented as gRPC server providing the `xArmAPI` as a service.
+- xarm-commander: The main CLI program to run commands on xArms implemented as a gRPC client.
+- xarm-daemon: A daemon responsible for the Modbus/TCP connection manager and packet generation (i.e., `xArmAPI` object) implemented as gRPC server providing the `xArmAPI` as a service.
 
 The proto file is defined in `proto/xapi.proto` based on [`xarm_api.h`](https://github.com/xArm-Developer/xArm-CPLUS-SDK/blob/master/include/xarm/wrapper/xarm_api.h).
 
@@ -34,7 +34,7 @@ The rest of this document assumes you have installed gRPC and Protocol Buffers i
 ```console
 $ mkdir -p cmake/build
 $ cmake -DCMAKE_PREFIX_PATH=~/.local ../..
-$ make -
+$ make -j
 ```
 
 ## Synopsis
