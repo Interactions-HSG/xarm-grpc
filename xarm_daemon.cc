@@ -23,20 +23,22 @@ using xapi::Version;
 
 // XAPI server
 class XAPIServiceImpl final : public XAPI::Service {
-  Status GetVersion(ServerContext* context, const Empty* empty,
-                  Version* version) override {
+  Status Disconnect(ServerContext* context, const Empty* empty1, Empty* empty2) override {
+    api->disconnect();
+    return Status::OK;
+  }
+
+  Status GetVersion(ServerContext* context, const Empty* empty, Version* version) override {
     int status_code;
     unsigned char version_char[40];
     status_code = api->get_version(version_char);
-    std::string version_str( version_char, version_char + sizeof version_char / sizeof version_char[0] );
-
+    std::string version_str(version_char, version_char + sizeof version_char / sizeof version_char[0]);
     version->set_version(version_str);
     version->set_status_code(status_code);
     return Status::OK;
   }
 
-  Status Initialize(ServerContext* context, const InitParam* p,
-                  Empty* empty) override {
+  Status Initialize(ServerContext* context, const InitParam* p, Empty* empty) override {
     api = new XArmAPI(p->ip_address());
     return Status::OK;
   }

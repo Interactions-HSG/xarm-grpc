@@ -7,6 +7,7 @@ package xapi;
 
 service XAPI {
   // Get the xArm version
+  rpc Disconnect (Empty) returns (Empty);
   rpc GetVersion (Empty) returns (Version);
   rpc Initialize (InitParam) returns (Empty);
 }

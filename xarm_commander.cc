@@ -60,6 +60,14 @@ public:
   explicit XAPIClient(std::shared_ptr<Channel> channel)
       : stub_(XAPI::NewStub(channel)) {}
 
+  // Disconnect the Modbus/TCP connection
+  void Disconnect() {
+    Empty empty;
+    ClientContext context;
+    Status status = stub_->Disconnect(&context, empty, &empty);
+    return;
+  }
+
   // Get the xArm version
   Version GetVersion() {
     Empty empty;
@@ -143,11 +151,20 @@ int main(int argc, char **argv) {
     app.add_option("-i, --ip", daemon_ip, "IP address of the daemon");
     std::string daemon_port = "50051";
     app.add_option("-p, --port", daemon_port, "gRPC port of the daemon");
-    std::string xarm_ip = "192.168.0.2";
-    app.add_option("-x, --xarm_ip", xarm_ip, "ip-address of xArm control box");
 
     // ===== SUBCOMMANDS =====
     app.require_subcommand(1);  // set max number of subcommands to 1
+
+    auto *disconnect =
+        app.add_subcommand("disconnect", "disconnect from xArm");
+    disconnect->callback([&]() {
+        XAPIClient client(
+                grpc::CreateChannel(fmt::format("{}:{}", daemon_ip, daemon_port),
+                grpc::InsecureChannelCredentials())
+        );
+        client.Disconnect();
+        std::cout << "Disconnected" << std::endl;
+    });
 
     /*
     // Subcommand: get_position
@@ -208,8 +225,10 @@ int main(int argc, char **argv) {
     });
 
     // Subcommand: initialize
+    std::string xarm_ip = "192.168.0.2";
     auto *initialize =
         app.add_subcommand("initialize", "initialize XArmAPI");
+    initialize->add_option("-x, --xarm_ip", xarm_ip, "ip-address of xArm control box");
     initialize->callback([&]() {
         XAPIClient client(
                 grpc::CreateChannel(fmt::format("{}:{}", daemon_ip, daemon_port),
