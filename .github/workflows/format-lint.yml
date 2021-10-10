@@ -28,11 +28,16 @@ jobs:
       #- name: generate Makefile
       #  run: cmake -DCMAKE_PREFIX_PATH=~/.local ../..
       #  working-directory: ./cmake/build
-      - name: clang-format xarm_daemon.cc
+      - name: clang-format
         uses: ./.github/actions/clang-format
         with:
           style: file
-          src: "*.cc"
+          src: xarm_commander.cc
+      - name: clang-format
+        uses: ./.github/actions/clang-format
+        with:
+          style: file
+          src: xarm_daemon.cc
       #- name: clang-tidy
       #  uses: ./.github/actions/clang-tidy
       #  with:
