@@ -32,7 +32,7 @@ The rest of this document assumes you have installed gRPC and Protocol Buffers i
 ## Build `xarm-daemon` and `xarm-commander`
 
 ```console
-$ mkdir -p cmake/build
+$ mkdir -p cmake/build && cd cmake/build
 $ cmake -DCMAKE_PREFIX_PATH=~/.local ../..
 $ make -j
 ```
