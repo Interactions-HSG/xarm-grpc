@@ -7,3 +7,6 @@
 [submodule "libs/easyloggingpp"]
 	path = libs/easyloggingpp
 	url = https://github.com/amrayn/easyloggingpp.git
+[submodule "libs/fmt"]
+	path = libs/fmt
+	url = https://github.com/fmtlib/fmt.git
