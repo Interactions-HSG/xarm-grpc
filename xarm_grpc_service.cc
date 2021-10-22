@@ -67,26 +67,26 @@ void RunServer(std::string server_address) {
 }
 
 int main(int argc, char **argv) {
-    // CLI11 xarm-daemon app
-    CLI::App app{"xarm-daemon: a daemon management tool for the C++ xArmAPI."};
+    // CLI11 xarm-grpc-service app
+    CLI::App app{"xarm-grpc-service: a CLI tool for starting the C++ xArmAPI gRPC service."};
 
     // Prints defaults on help
     app.option_defaults()->always_capture_default();
 
     // Options
-    std::string daemon_ip = "127.0.0.1";
-    app.add_option("-i, --ip", daemon_ip, "IP address of the daemon");
-    std::string daemon_port = "50051";
-    app.add_option("-p, --port", daemon_port, "gRPC port of the daemon");
+    std::string server_ip = "127.0.0.1";
+    app.add_option("-i, --ip", server_ip, "IP address of the gRPC server");
+    std::string server_port = "50051";
+    app.add_option("-p, --port", server_port, "port of the gRPC server");
 
     // Subcommands
     app.require_subcommand(1);  // set max number of subcommands to 1
 
     // Subcommand: start
     auto *start =
-        app.add_subcommand("start", "start the daemon");
+        app.add_subcommand("start", "start the service");
     start->callback([&]() {
-        RunServer(fmt::format("{}:{}", daemon_ip, daemon_port));
+        RunServer(fmt::format("{}:{}", server_ip, server_port));
     });
 
     CLI11_PARSE(app, argc, argv);

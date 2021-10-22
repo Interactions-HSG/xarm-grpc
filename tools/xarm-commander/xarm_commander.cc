@@ -44,11 +44,11 @@ public:
     // initialization after parsing and before callback
     // overriding the virtual function
     void pre_callback() override {
-        std::string daemon_ip;
-        std::string daemon_port;
+        std::string server_ip;
+        std::string server_port;
 
         client = new XAPIClient(
-                grpc::CreateChannel(fmt::format("{}:{}", daemon_ip, daemon_port),
+                grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
                 grpc::InsecureChannelCredentials())
         );
     }
@@ -128,7 +128,7 @@ int main(int argc, char **argv) {
     // CLI11 xarm-commander app
     //ClientApp app {
     CLI::App app {
-        "xarm-commander: a command line tool for UFACTORY xArm."
+        "xarm-commander: a CLI tool for controlling the UFACTORY xArm using the gRPC service."
     };
 
     // print defaults on help
@@ -147,10 +147,10 @@ int main(int argc, char **argv) {
         "Multiple -v flags increase the verbosity. The maximum is 3.");
 
     // ===== OPTIONS =====
-    std::string daemon_ip = "127.0.0.1";
-    app.add_option("-i, --ip", daemon_ip, "IP address of the daemon");
-    std::string daemon_port = "50051";
-    app.add_option("-p, --port", daemon_port, "gRPC port of the daemon");
+    std::string server_ip = "127.0.0.1";
+    app.add_option("-i, --ip", server_ip, "IP address of the gRPC server");
+    std::string server_port = "50051";
+    app.add_option("-p, --port", server_port, "port of the gRPC server");
 
     // ===== SUBCOMMANDS =====
     app.require_subcommand(1);  // set max number of subcommands to 1
@@ -159,7 +159,7 @@ int main(int argc, char **argv) {
         app.add_subcommand("disconnect", "disconnect from xArm");
     disconnect->callback([&]() {
         XAPIClient client(
-                grpc::CreateChannel(fmt::format("{}:{}", daemon_ip, daemon_port),
+                grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
                 grpc::InsecureChannelCredentials())
         );
         client.Disconnect();
@@ -216,7 +216,7 @@ int main(int argc, char **argv) {
         app.add_subcommand("get_version", "send a get_version command");
     get_version->callback([&]() {
         XAPIClient client(
-                grpc::CreateChannel(fmt::format("{}:{}", daemon_ip, daemon_port),
+                grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
                 grpc::InsecureChannelCredentials())
         );
         Version version;
@@ -231,7 +231,7 @@ int main(int argc, char **argv) {
     initialize->add_option("-x, --xarm_ip", xarm_ip, "ip-address of xArm control box");
     initialize->callback([&]() {
         XAPIClient client(
-                grpc::CreateChannel(fmt::format("{}:{}", daemon_ip, daemon_port),
+                grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
                 grpc::InsecureChannelCredentials())
         );
         client.Initialize(xarm_ip);  // The actual RPC call!

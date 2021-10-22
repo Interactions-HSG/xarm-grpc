@@ -1,25 +1,26 @@
-# xarm-commander
-A C++ CLI Tool for controlling [UFACTORY xArm series](https://www.ufactory.cc/pages/xarm) using the [xArm-CPLUS-SDK](https://github.com/xArm-Developer/xArm-CPLUS-SDK).
+# xarm-grpc
+A gRPC service implemenation for controlling [UFACTORY xArm series](https://www.ufactory.cc/pages/xarm) using the [xArm-CPLUS-SDK](https://github.com/xArm-Developer/xArm-CPLUS-SDK).
 
 The dependencies are added as subomodules, so when cloning this repository, do:
 ```console
-$ git clone git@github.com:Interactions-HSG/xarm-commander.git --recursive
+$ git clone git@github.com:Interactions-HSG/xarm-grpc.git --recursive
 ```
 
-This project consists of two artifacts:
-- xarm-commander: The main CLI program to run commands on xArms implemented as a gRPC client.
-- xarm-daemon: A daemon responsible for the Modbus/TCP connection manager and packet generation (i.e., `xArmAPI` object) implemented as gRPC server providing the `xArmAPI` as a service.
+This project implements the following:
+- `xarm-grpc-service`: The gRPC service responsible for the Modbus/TCP connection management and packet generation (i.e., `xArmAPI` object) providing the `xArmAPI` as a service.
+- `xarm-commander`: A gRPC client implemented as a C++ CLI Tool to run commands on xArms. For further information about the `xarm-commander` go to section Tools.
+
 
 The proto file is defined in `proto/xapi.proto` based on [`xarm_api.h`](https://github.com/xArm-Developer/xArm-CPLUS-SDK/blob/master/include/xarm/wrapper/xarm_api.h).
 
-`xarm-commander` implements a few subcommands specific to the connection management:
-- `initialize`: instantiate a `xArmAPI` object and connect the daemon to a xArm specified by the `-x` option.
-- `disconnect`: disconnect the daemon from the xArm.
+The following services are specific to the connection management:
+- `Initialize`: instantiate a `xArmAPI` object and connect the server to a xArm specified by the `-x` option.
+- `Disconnect`: close the connection to the xArm.
 
 ## Preparation
 
 ### xArm-CPLUS-SDK
-To use the xarm-commander, first install the xArm-PLUS-SDK library:
+To use the `xarm-grpc-service` first install the xArm-PLUS-SDK library:
 ```console
 $ make -C libs/xArm-CPLUS-SDK xarm
 ```
@@ -29,52 +30,36 @@ Follow the [gRPC's Quick start guide](https://grpc.io/docs/languages/cpp/quickst
 
 The rest of this document assumes you have installed gRPC and Protocol Buffers in `~/.local`.
 
-## Build `xarm-daemon` and `xarm-commander`
+## Build `xarm-grpc-service` and `xarm-commander`
 
 ```console
 $ mkdir -p cmake/build && cd cmake/build
 $ cmake -DCMAKE_PREFIX_PATH=~/.local ../..
 $ make -j
 ```
+For global installation then run:
+```console
+$ cp xarm-grpc-service ~/.local/bin
+$ cp xarm-commander ~/.local/bin
+```
 
 ## Synopsis
-For further description about usage of the xarm-commander, use -h or --help:
-
-xarm-daemon needs to be running in order to run any command from xarm-commander.
-
-Start the daemon by:
+The gRPC service can be started using following command:
 ```console
-$ xarm-daemon start
+$ xarm-grpc-service start
 ```
+Then use a gRPC client (e.g., `xarm-commander`) to send commands to the xArm.
 
-then:
+To close the gRPC service run:
 ```console
-$ xarm-commander initialize -x <ip address of your xarm>
-Initialized
-$ xarm-commander get_version
-Verion: h2,v1.6.5
+$ xarm-grpc-service stop
 ```
-> :bulb: Can be also used for subcommands: `xarm-commander get_version -h`
+For further description about usage of the `xarm-grpc-service`, use `-h` or `--help`.
 
-## Examples
-The `examples` directory contains examples on how to integrate the xarm-commander into different languages.  
-Currently, the following examples are provided:
-
-### `routine.sh`: A simple collection of commands called from a bash script.
-```console
-$ sh examples/routine.sh <IP address of xArm7 control box>
-```
-
-### `node_async.js`: Integration into Javascript using `async` functions.
-```console
-$ node examples/node_async.js <IP address of xArm7 control box>
-```
-
-### `node_promise.js`: Integration into Javascript using `promises`.
-```console
-$ node examples/node_promise.js <IP address of xArm7 control box>
-```
-> :bulb: NodeJS version 10+ (e.g., 10.13.0 LTS) is required to run the `node_*` examples.
+## Tools
+The Tools directory includes available clients for the xarm-grpc-service.
+Currently, the following clients are implemented:
+- `xarm-commander`: A gRPC client implemented as a C++ CLI Tool to run commands on xArms implemented as a gRPC client. For further instructions on how to use the `xarm-commander` follow [this link](tools/xarm-commander).
 
 ## Dependencies
 - [CLI11](https://github.com/CLIUtils/CLI11)

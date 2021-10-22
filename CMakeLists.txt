@@ -42,10 +42,10 @@ target_link_libraries(hw_grpc_proto
 # other libs
 include_directories("./libs")
 
-# xarm-daemon
-add_executable(xarm-daemon
-  xarm_daemon.cc)
-target_link_libraries(xarm-daemon
+# xarm-grpc-service
+add_executable(xarm-grpc-service
+  xarm_grpc_service.cc)
+target_link_libraries(xarm-grpc-service
   hw_grpc_proto
   ${_REFLECTION}
   ${_GRPC_GRPCPP}
@@ -55,7 +55,7 @@ target_link_libraries(xarm-daemon
 # xarm-commander
 add_executable(xarm-commander
   libs/easyloggingpp/src/easylogging++.cc
-  xarm_commander.cc
+  tools/xarm-commander/xarm_commander.cc
   )
 target_link_libraries(xarm-commander
   hw_grpc_proto
