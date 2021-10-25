@@ -37,11 +37,6 @@ $ mkdir -p cmake/build && cd cmake/build
 $ cmake -DCMAKE_PREFIX_PATH=~/.local ../..
 $ make -j
 ```
-For global installation then run:
-```console
-$ cp xarm-grpc-service ~/.local/bin
-$ cp xarm-commander ~/.local/bin
-```
 
 ## Synopsis
 The gRPC service can be started using following command:
@@ -59,7 +54,7 @@ For further description about usage of the `xarm-grpc-service`, use `-h` or `--h
 ## Tools
 The Tools directory includes available clients for the xarm-grpc-service.
 Currently, the following clients are implemented:
-- `xarm-commander`: A gRPC client implemented as a C++ CLI Tool to run commands on xArms. For further instructions on how to use the `xarm-commander` follow [this link](tools/xarm-commander).
+- `xarm-commander`: A gRPC client implemented as a C++ CLI Tool to run commands on xArms. For further instructions on how to use the `xarm-commander` see [here](tools/xarm-commander).
 
 ## Dependencies
 - [CLI11](https://github.com/CLIUtils/CLI11)
@@ -68,6 +63,9 @@ Currently, the following clients are implemented:
 - [{fmt}](https://github.com/fmtlib/fmt)
 - [gRPC](https://github.com/grpc/grpc)
 - [xArm-CPLUS-SDK](https://github.com/xArm-Developer/xArm-CPLUS-SDK)
+
+## How to contribute to this project?
+See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## Maintainers
 
