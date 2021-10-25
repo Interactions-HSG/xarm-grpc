@@ -32,12 +32,12 @@ jobs:
         uses: ./.github/actions/clang-format
         with:
           style: file
-          src: xarm_commander.cc
+          src: ./tools/xarm-commander/xarm_commander.cc
       - name: clang-format
         uses: ./.github/actions/clang-format
         with:
           style: file
-          src: xarm_daemon.cc
+          src: xarm_grpc_service.cc
       #- name: clang-tidy
       #  uses: ./.github/actions/clang-tidy
       #  with:
