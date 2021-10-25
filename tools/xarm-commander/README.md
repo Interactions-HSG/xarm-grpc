@@ -18,24 +18,3 @@ Verion: h2,v1.6.5
 For further description about usage of the xarm-commander, use -h or --help.
 > :bulb: Can be also used for subcommands: `xarm-commander get_version -h`
 
-## Examples
-The `examples` directory contains examples on how to integrate the xarm-commander into different languages.  
-Currently, the following examples are provided:
-
-### `routine.sh`: A simple collection of commands called from a bash script.
-```console
-$ sh examples/routine.sh <IP address of xArm7 control box>
-```
-
-### `node_async.js`: Integration into Javascript using `async` functions.
-```console
-$ node examples/node_async.js <IP address of xArm7 control box>
-```
-
-### `node_promise.js`: Integration into Javascript using `promises`.
-```console
-$ node examples/node_promise.js <IP address of xArm7 control box>
-```
-> :bulb: NodeJS version 10+ (e.g., 10.13.0 LTS) is required to run the `node_*` examples.
-
-
