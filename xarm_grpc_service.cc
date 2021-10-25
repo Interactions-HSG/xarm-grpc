@@ -38,7 +38,7 @@ class XAPIServiceImpl final : public XAPI::Service {
         api = new XArmAPI(p->ip_address());
         return Status::OK;
     }
-    // ===== Properties =====
+    // ===== Read methods =====
     Status GetVersion(ServerContext* context, const Empty* empty,
                       Version* version) override {
         int status_code;
@@ -62,22 +62,6 @@ class XAPIServiceImpl final : public XAPI::Service {
         return Status::OK;
     }
 
-    Status SetState(ServerContext* context, const State* state,
-                    State* state_res) override {
-        int status_code_tmp;
-        status_code_tmp = api->set_state(state->state());
-        state_res->set_status_code(status_code_tmp);
-        return Status::OK;
-    }
-
-    Status SetMode(ServerContext* context, const Mode* mode,
-                   Mode* mode_res) override {
-        int status_code_tmp;
-        status_code_tmp = api->set_mode(mode->mode());
-        mode_res->set_status_code(status_code_tmp);
-        return Status::OK;
-    }
-
     Status GetPosition(ServerContext* context, const Empty* empty,
                        Position* position) override {
         int status_code_tmp;
@@ -93,15 +77,30 @@ class XAPIServiceImpl final : public XAPI::Service {
         return Status::OK;
     }
 
-    // ===== Actions =====
-
-    Status SetMotionEnable(ServerContext* context,
+    // ===== Write methods =====
+        Status SetMotionEnable(ServerContext* context,
                            const MotionEnable* motion_enable,
                            MotionEnable* motion_enable_res) override {
         int status_code_tmp;
         status_code_tmp = api->motion_enable(motion_enable->enable(),
                                              motion_enable->servo_id());
         motion_enable_res->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
+    Status SetState(ServerContext* context, const State* state,
+                    State* state_res) override {
+        int status_code_tmp;
+        status_code_tmp = api->set_state(state->state());
+        state_res->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
+    Status SetMode(ServerContext* context, const Mode* mode,
+                   Mode* mode_res) override {
+        int status_code_tmp;
+        status_code_tmp = api->set_mode(mode->mode());
+        mode_res->set_status_code(status_code_tmp);
         return Status::OK;
     }
 

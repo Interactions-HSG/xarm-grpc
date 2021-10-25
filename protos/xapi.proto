@@ -6,20 +6,22 @@ package xapi;
 // this service exposes an XArmAPI class object
 
 service XAPI {
+  
   // Connection specific services
-  rpc Disconnect (Empty) returns (Empty);
   rpc Initialize (InitParam) returns (Empty);
-
-  // Properties
+  rpc Disconnect (Empty) returns (Empty);
+  
+  // Read services
   rpc GetVersion (Empty) returns (Version);
   rpc GetState (Empty) returns (State);
-  rpc SetState (State) returns (State);
-  rpc SetMode (Mode) returns (Mode);
   rpc GetPosition (Empty) returns (Position);
   
-  // Actions
-  rpc SetPosition (Position) returns (Position);
+  // Write services
   rpc SetMotionEnable (MotionEnable) returns (MotionEnable);
+  rpc SetState (State) returns (State);
+  rpc SetMode (Mode) returns (Mode);
+  rpc SetPosition (Position) returns (Position);
+
 
 }
 
@@ -53,17 +55,6 @@ message State {
   int32 state = 2;
 }
 
-message Mode {
-  int32 status_code = 1;
-  int32 mode = 2;
-}
-
-message MotionEnable {
-  int32 status_code = 1;
-  int32 enable = 2;
-  int32 servo_id = 3;
-}
-
 message Position {
   int32 status_code = 1;
   float x = 2;
@@ -73,6 +64,17 @@ message Position {
   float pitch = 6;
   float yaw = 7;
   bool wait = 8;
+}
+
+message MotionEnable {
+  int32 status_code = 1;
+  int32 enable = 2;
+  int32 servo_id = 3;
+}
+
+message Mode {
+  int32 status_code = 1;
+  int32 mode = 2;
 }
 
 // See the definition of the status_code at

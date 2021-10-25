@@ -98,7 +98,7 @@ class XAPIClient {
         return;
     }
 
-    // ===== Properties =====
+    // ===== Read methods =====
     // Get the xArm version
     Version GetVersion() {
         Empty empty;
@@ -127,6 +127,31 @@ class XAPIClient {
         return state;
     }
 
+    // Get the xArm position
+    Position GetPosition() {
+        Empty empty;
+        Position position;
+        ClientContext context;
+        Status status = stub_->GetPosition(&context, empty, &position);
+        return position;
+    }
+
+    // ===== Write methods =====
+
+    // Enable the motion of the xArm (specific joints)
+    MotionEnable SetMotionEnable(const MotionEnable &motion_enable) {
+        // Context for the client. It could be used to convey extra information
+        // to the server and/or tweak certain RPC behaviors.
+        ClientContext context;
+        // Container for the data we expect from the server.
+        MotionEnable motion_enable_res;
+
+        Status status =
+            stub_->SetMotionEnable(&context, motion_enable, &motion_enable_res);
+
+        return motion_enable_res;
+    }
+
     // Set the xArm state
     State SetState(const State &state) {
         // Context for the client. It could be used to convey extra information
@@ -151,31 +176,6 @@ class XAPIClient {
         Status status = stub_->SetMode(&context, mode, &mode_res);
 
         return mode_res;
-    }
-
-    // Get the xArm position
-    Position GetPosition() {
-        Empty empty;
-        Position position;
-        ClientContext context;
-        Status status = stub_->GetPosition(&context, empty, &position);
-        return position;
-    }
-
-    // ===== Actions =====
-
-    // Enable the motion of the xArm (specific joints)
-    MotionEnable SetMotionEnable(const MotionEnable &motion_enable) {
-        // Context for the client. It could be used to convey extra information
-        // to the server and/or tweak certain RPC behaviors.
-        ClientContext context;
-        // Container for the data we expect from the server.
-        MotionEnable motion_enable_res;
-
-        Status status =
-            stub_->SetMotionEnable(&context, motion_enable, &motion_enable_res);
-
-        return motion_enable_res;
     }
 
     // Set the xArm position
@@ -263,7 +263,7 @@ int main(int argc, char **argv) {
         std::cout << "Initialized" << std::endl;
     });
 
-    // ----- Properties -----
+    // ----- Read methods -----
 
     // Subcommand: get_version
     auto *get_version =
@@ -289,6 +289,62 @@ int main(int argc, char **argv) {
         state = client.GetState();  // The actual RPC call!
         std::cout << "State: " << state.state() << std::endl;
         std::cout << "Response code: " << state.status_code() << std::endl;
+    });
+
+    
+    // Subcommand: get_position
+    auto *get_position = app.add_subcommand(
+        "get_position",
+        "send a get_position command to get the cartesian position");
+    get_position->callback([&]() {
+        XAPIClient client(
+            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
+                                grpc::InsecureChannelCredentials()));
+        Position position;
+        position = client.GetPosition();  // The actual RPC call!
+        std::cout << "Position: \n"
+                  << "    \"x\": " << position.x() << "\n"
+                  << "    \"y\": " << position.y() << "\n"
+                  << "    \"z\": " << position.z() << "\n"
+                  << "    \"roll\": " << position.roll() << "\n"
+                  << "    \"pitch\": " << position.pitch() << "\n"
+                  << "    \"yaw\": " << position.yaw() << std::endl;
+        std::cout << "Response code: " << position.status_code() << std::endl;
+    });
+
+    //----- Write methods -----
+    
+    // Subcommand: motion_enable
+    auto *motion_enable =
+        app.add_subcommand("motion_enable", "send a motion_enable command");
+
+    bool enable_flag{true};
+    motion_enable->add_flag("-e, --enable, -d{false}, --disable{false}",
+                            enable_flag,
+                            "enable or disable the xArm (default:"
+                            "--enable)");
+
+    int servo_option{constants::kAllServo};
+    motion_enable->add_option("-s, --servo", servo_option,
+                              "choose servo [1-8] to be enabled/disabled, "
+                              "(default: 8 - enable/disable all servo)");
+
+    motion_enable->callback([&]() {
+        XAPIClient client(
+            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
+                                grpc::InsecureChannelCredentials()));
+        // Request Message
+        MotionEnable motion_enable_req;
+        motion_enable_req.set_enable(enable_flag);
+        motion_enable_req.set_servo_id(servo_option);
+
+        // Response Message
+        MotionEnable motion_enable_res;
+
+        motion_enable_res =
+            client.SetMotionEnable(motion_enable_req);  // The actual RPC call!
+        std::cout << "Response code: " << motion_enable_res.status_code()
+                  << std::endl;
     });
 
     // Subcommand: set_state
@@ -331,59 +387,6 @@ int main(int argc, char **argv) {
         std::cout << "Response code: " << mode_res.status_code() << std::endl;
     });
 
-    // Subcommand: get_position
-    auto *get_position = app.add_subcommand(
-        "get_position",
-        "send a get_position command to get the cartesian position");
-    get_position->callback([&]() {
-        XAPIClient client(
-            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
-                                grpc::InsecureChannelCredentials()));
-        Position position;
-        position = client.GetPosition();  // The actual RPC call!
-        std::cout << "Position: \n"
-                  << "    \"x\": " << position.x() << "\n"
-                  << "    \"y\": " << position.y() << "\n"
-                  << "    \"z\": " << position.z() << "\n"
-                  << "    \"roll\": " << position.roll() << "\n"
-                  << "    \"pitch\": " << position.pitch() << "\n"
-                  << "    \"yaw\": " << position.yaw() << std::endl;
-        std::cout << "Response code: " << position.status_code() << std::endl;
-    });
-
-    // ===== Actions =====
-    // Subcommand: motion_enable
-    auto *motion_enable =
-        app.add_subcommand("motion_enable", "send a motion_enable command");
-
-    bool enable_flag{true};
-    motion_enable->add_flag("-e, --enable, -d{false}, --disable{false}",
-                            enable_flag,
-                            "enable or disable the xArm (default:"
-                            "--enable)");
-
-    int servo_option{constants::kAllServo};
-    motion_enable->add_option("-s, --servo", servo_option,
-                              "choose servo [1-8] to be enabled/disabled, "
-                              "(default: 8 - enable/disable all servo)");
-
-    motion_enable->callback([&]() {
-        XAPIClient client(
-            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
-                                grpc::InsecureChannelCredentials()));
-        // Request Message
-        MotionEnable motion_enable_req;
-        motion_enable_req.set_enable(enable_flag);
-        motion_enable_req.set_servo_id(servo_option);
-
-        // Response Message
-        MotionEnable motion_enable_res;
-
-        motion_enable_res =
-            client.SetMotionEnable(motion_enable_req);  // The actual RPC call!
-        std::cout << "Response code: " << motion_enable_res.status_code()
-                  << std::endl;
-    });
 
     // Subcommand: set_position
     auto *set_position = app.add_subcommand(
