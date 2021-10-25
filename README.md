@@ -59,7 +59,7 @@ For further description about usage of the `xarm-grpc-service`, use `-h` or `--h
 ## Tools
 The Tools directory includes available clients for the xarm-grpc-service.
 Currently, the following clients are implemented:
-- `xarm-commander`: A gRPC client implemented as a C++ CLI Tool to run commands on xArms implemented as a gRPC client. For further instructions on how to use the `xarm-commander` follow [this link](tools/xarm-commander).
+- `xarm-commander`: A gRPC client implemented as a C++ CLI Tool to run commands on xArms. For further instructions on how to use the `xarm-commander` follow [this link](tools/xarm-commander).
 
 ## Dependencies
 - [CLI11](https://github.com/CLIUtils/CLI11)
