@@ -47,6 +47,7 @@ class XAPIServiceImpl final : public XAPI::Service {
         std::string version_str(
             version_char,
             version_char + sizeof version_char / sizeof version_char[0]);
+        version_str.resize(version_str.find('\0'));
         version->set_version(version_str);
         version->set_status_code(status_code);
         return Status::OK;
@@ -78,7 +79,7 @@ class XAPIServiceImpl final : public XAPI::Service {
     }
 
     // ===== Write methods =====
-        Status SetMotionEnable(ServerContext* context,
+    Status SetMotionEnable(ServerContext* context,
                            const MotionEnable* motion_enable,
                            MotionEnable* motion_enable_res) override {
         int status_code_tmp;
