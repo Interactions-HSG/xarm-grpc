@@ -25,6 +25,7 @@ using xapi::MoveCircleMsg;
 using xapi::Position;
 using xapi::ResetMsg;
 using xapi::ServoAngles;
+using xapi::SimulationRobot;
 using xapi::State;
 using xapi::TeachSensitivity;
 using xapi::Version;
@@ -63,6 +64,15 @@ class XAPIServiceImpl final : public XAPI::Service {
         int teach_sensitivity_tmp = api->teach_sensitivity;
         teach_sensitivity->set_teach_sensitivity(teach_sensitivity_tmp);
         teach_sensitivity->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
+    Status GetSimulationRobot(ServerContext* context, const Empty* empty,
+                              SimulationRobot* simulation_robot) override {
+        int status_code_tmp = 0;
+        bool is_simulation_robot = api->is_simulation_robot;
+        simulation_robot->set_on(is_simulation_robot);
+        simulation_robot->set_status_code(status_code_tmp);
         return Status::OK;
     }
 
@@ -269,9 +279,9 @@ class XAPIServiceImpl final : public XAPI::Service {
         return Status::OK;
     }
 
-
-    Status GetInverseKinematics(ServerContext* context, const Position* position,
-                       ServoAngles* servo_angles) override {
+    Status GetInverseKinematics(ServerContext* context,
+                                const Position* position,
+                                ServoAngles* servo_angles) override {
         int status_code_tmp;
         fp32 pose[6];
         pose[0] = position->x();
@@ -297,8 +307,8 @@ class XAPIServiceImpl final : public XAPI::Service {
     }
 
     Status GetForwardKinematics(ServerContext* context,
-                          const ServoAngles* servo_angles,
-                          Position* position) override {
+                                const ServoAngles* servo_angles,
+                                Position* position) override {
         int status_code_tmp;
         fp32 angles[6];
         angles[0] = servo_angles->servo_1();
@@ -319,6 +329,15 @@ class XAPIServiceImpl final : public XAPI::Service {
         position->set_pitch(pose[4]);
         position->set_yaw(pose[5]);
         position->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
+    Status SetSimulationRobot(ServerContext* context,
+                              const SimulationRobot* simulation_robot,
+                              SimulationRobot* simulation_robot_res) override {
+        int status_code_tmp;
+        status_code_tmp = api->set_simulation_robot(simulation_robot->on());
+        simulation_robot_res->set_status_code(status_code_tmp);
         return Status::OK;
     }
 

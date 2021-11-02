@@ -52,6 +52,7 @@ using xapi::ResetMsg;
 using xapi::ServoAngles;
 using xapi::State;
 using xapi::TeachSensitivity;
+using xapi::SimulationRobot;
 using xapi::Version;
 using xapi::XAPI;
 
@@ -115,6 +116,16 @@ class XAPIClient {
             stub_->GetTeachSensitivity(&context, empty, &teach_sensitivity);
 
         return teach_sensitivity;
+    }
+
+    SimulationRobot GetSimulationRobot() {
+        Empty empty;
+        SimulationRobot simulation_robot;
+        ClientContext context;
+        Status status = stub_->GetSimulationRobot(&context, empty,
+                                                       &simulation_robot);
+
+        return simulation_robot;
     }
 
     // Get the xArm version
@@ -341,6 +352,20 @@ class XAPIClient {
         return position_res;
     }
 
+    // Set the simulation robot
+    SimulationRobot SetSimulationRobot(const SimulationRobot &simulation_robot) {
+        // Context for the client. It could be used to convey extra information
+        // to the server and/or tweak certain RPC behaviors.
+        ClientContext context;
+        // Container for the data we expect from the server.
+        SimulationRobot simulation_robot_res;
+
+        Status status = stub_->SetSimulationRobot(&context, simulation_robot, &simulation_robot_res);
+
+        return simulation_robot_res;
+    }
+
+
    private:
     // Out of the passed in Channel comes the stub, stored here, our view of the
     // server's exposed services.
@@ -456,6 +481,25 @@ int main(int argc, char **argv) {
                   << std::endl;
     });
 #pragma endregion get_teach_sensitivity
+
+#pragma region get_simulation_robot
+    // Subcommand: get_simulation_robot
+    auto *get_simulation_robot =
+        app.add_subcommand("get_simulation_robot",
+                           "send a get_simulation_robot command");
+    get_simulation_robot->callback([&]() {
+        XAPIClient client(
+            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
+                                grpc::InsecureChannelCredentials()));
+        SimulationRobot simulation_robot;
+        simulation_robot =
+            client.GetSimulationRobot();  // The actual RPC call!
+        std::cout << "Simulation mode: "
+                  << simulation_robot.on() << std::endl;
+        std::cout << "Response code: " << simulation_robot.status_code()
+                  << std::endl;
+    });
+#pragma endregion get_simulation_robot
 
 #pragma region get_version
     // Subcommand: get_version
@@ -1005,6 +1049,27 @@ int main(int argc, char **argv) {
         std::cout << "Response code: " << position.status_code() << std::endl;
     });
 #pragma endregion get_forward_kinematics
+
+#pragma region set_simulation_robot
+    // Subcommand: set_simulation_robot
+    auto *set_simulation_robot =
+        app.add_subcommand("set_simulation_robot", "send a set_simulation_robot command");
+
+    bool on_option = true;
+    set_simulation_robot->add_option("-o, --on", on_option,
+                          "on: enable(true) or not(false)");
+
+    set_simulation_robot->callback([&]() {
+        XAPIClient client(
+            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
+                                grpc::InsecureChannelCredentials()));
+        SimulationRobot simulation_robot;
+        SimulationRobot simulation_robot_res;
+        simulation_robot.set_on(on_option);
+        simulation_robot_res = client.SetSimulationRobot(simulation_robot);  // The actual RPC call!
+        std::cout << "Response code: " << simulation_robot_res.status_code() << std::endl;
+    });
+#pragma endregion set_simulation_robot
 
     CLI11_PARSE(app, argc, argv);
 

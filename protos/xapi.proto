@@ -38,6 +38,9 @@ service XAPI {
   rpc GetInverseKinematics (Position) returns (ServoAngles);
   rpc GetForwardKinematics (ServoAngles) returns (Position);
 
+  rpc GetSimulationRobot (Empty) returns (SimulationRobot);
+  rpc SetSimulationRobot (SimulationRobot) returns (SimulationRobot);
+
 
 }
 
@@ -86,8 +89,6 @@ message Cmdnum {
   int32 cmdnum = 2;
 }
 
-
-
 message Position {
   // TODO(jo-bru): add oneof to handle polymorphism
   int32 status_code = 1;
@@ -113,6 +114,18 @@ message ServoAngles {
   bool wait = 9;
 }
 
+
+message MotionEnable {
+  int32 status_code = 1;
+  int32 enable = 2;
+  int32 servo_id = 3;
+}
+
+message Mode {
+  int32 status_code = 1;
+  int32 mode = 2;
+}
+
 message MoveCircleMsg {
   int32 status_code = 1;
   Position pose_1 = 2;
@@ -130,15 +143,9 @@ message ResetMsg {
   float timeout = 3;
 }
 
-message MotionEnable {
+message SimulationRobot{
   int32 status_code = 1;
-  int32 enable = 2;
-  int32 servo_id = 3;
-}
-
-message Mode {
-  int32 status_code = 1;
-  int32 mode = 2;
+  bool on = 2;
 }
 
 // See the definition of the status_code at
