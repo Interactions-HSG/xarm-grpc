@@ -12,15 +12,28 @@ service XAPI {
   rpc Disconnect (Empty) returns (Empty);
   
   // Read services
+  rpc GetCollisionSensitivity (Empty) returns (CollisionSensitivity);
+  rpc GetTeachSensitivity (Empty) returns (TeachSensitivity);
+
   rpc GetVersion (Empty) returns (Version);
   rpc GetState (Empty) returns (State);
+  rpc GetCmdnum (Empty) returns (Cmdnum);
+  rpc GetServoAngles (Empty) returns (ServoAngles);
   rpc GetPosition (Empty) returns (Position);
-  
+
   // Write services
   rpc SetMotionEnable (MotionEnable) returns (MotionEnable);
   rpc SetState (State) returns (State);
   rpc SetMode (Mode) returns (Mode);
+  rpc SetCollisionSensitivity (CollisionSensitivity) returns (CollisionSensitivity);
+  rpc SetTeachSensitivity (TeachSensitivity) returns (TeachSensitivity);
+
   rpc SetPosition (Position) returns (Position);
+  rpc SetServoAngles (ServoAngles) returns (ServoAngles);
+  rpc MoveCircle (MoveCircleMsg) returns (MoveCircleMsg);
+
+  rpc Reset (ResetMsg) returns (Empty);
+  rpc EmergencyStop (Empty) returns (Empty);
 
 
 }
@@ -45,6 +58,16 @@ message InitParam {
   string report_type = 14;
 }
 
+message CollisionSensitivity{
+  int32 status_code = 1;
+  int32 collision_sensitivity = 2;
+}
+
+message TeachSensitivity{
+  int32 status_code = 1;
+  int32 teach_sensitivity = 2;
+}
+
 message Version {
   int32 status_code = 1;
   string version = 2;
@@ -55,7 +78,15 @@ message State {
   int32 state = 2;
 }
 
+message Cmdnum {
+  int32 status_code = 1;
+  int32 cmdnum = 2;
+}
+
+
+
 message Position {
+  // TODO(jo-bru): add oneof to handle polymorphism
   int32 status_code = 1;
   float x = 2;
   float y = 3;
@@ -64,6 +95,36 @@ message Position {
   float pitch = 6;
   float yaw = 7;
   bool wait = 8;
+}
+
+message ServoAngles {
+  // TODO(jo-bru): add oneof to handle polymorphism
+  int32 status_code = 1;
+  float servo_1 = 2;
+  float servo_2 = 3;
+  float servo_3 = 4;
+  float servo_4 = 5;
+  float servo_5 = 6;
+  float servo_6 = 7;
+  float servo_7 = 8;
+  bool wait = 9;
+}
+
+message MoveCircleMsg {
+  int32 status_code = 1;
+  Position pose_1 = 2;
+  Position pose_2 = 3;
+  float percent = 4;
+  float speed = 5;
+  float acc = 6;
+  bool wait = 7;
+  float timeout = 8;
+}
+
+message ResetMsg {
+  int32 status_code = 1;
+  bool wait = 2;
+  float timeout = 3;
 }
 
 message MotionEnable {

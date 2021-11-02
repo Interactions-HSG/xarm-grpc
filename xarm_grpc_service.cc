@@ -15,12 +15,18 @@ using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::Status;
+using xapi::Cmdnum;
+using xapi::CollisionSensitivity;
 using xapi::Empty;
 using xapi::InitParam;
 using xapi::Mode;
 using xapi::MotionEnable;
+using xapi::MoveCircleMsg;
 using xapi::Position;
+using xapi::ResetMsg;
+using xapi::ServoAngles;
 using xapi::State;
+using xapi::TeachSensitivity;
 using xapi::Version;
 using xapi::XAPI;
 
@@ -38,7 +44,28 @@ class XAPIServiceImpl final : public XAPI::Service {
         api = new XArmAPI(p->ip_address());
         return Status::OK;
     }
+
     // ===== Read methods =====
+    Status GetCollisionSensitivity(
+        ServerContext* context, const Empty* empty,
+        CollisionSensitivity* collision_sensitivity) override {
+        int status_code_tmp = 0;  // TODO(jo-bru): status code for properties
+        int collision_sensitivity_tmp = api->collision_sensitivity;
+        collision_sensitivity->set_collision_sensitivity(
+            collision_sensitivity_tmp);
+        collision_sensitivity->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
+    Status GetTeachSensitivity(ServerContext* context, const Empty* empty,
+                               TeachSensitivity* teach_sensitivity) override {
+        int status_code_tmp = 0;  // TODO(jo-bru): status code for properties
+        int teach_sensitivity_tmp = api->teach_sensitivity;
+        teach_sensitivity->set_teach_sensitivity(teach_sensitivity_tmp);
+        teach_sensitivity->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
     Status GetVersion(ServerContext* context, const Empty* empty,
                       Version* version) override {
         int status_code;
@@ -60,6 +87,32 @@ class XAPIServiceImpl final : public XAPI::Service {
         status_code_tmp = api->get_state(&state_tmp);
         state->set_state(state_tmp);
         state->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
+    Status GetCmdnum(ServerContext* context, const Empty* empty,
+                     Cmdnum* cmdnum) override {
+        int status_code_tmp;
+        int cmdnum_tmp;
+        status_code_tmp = api->get_cmdnum(&cmdnum_tmp);
+        cmdnum->set_cmdnum(cmdnum_tmp);
+        cmdnum->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
+    Status GetServoAngles(ServerContext* context, const Empty* empty,
+                          ServoAngles* servo_angles) override {
+        int status_code_tmp;
+        fp32 angles[7];
+        status_code_tmp = api->get_servo_angle(angles);
+        servo_angles->set_servo_1(angles[0]);
+        servo_angles->set_servo_2(angles[1]);
+        servo_angles->set_servo_3(angles[2]);
+        servo_angles->set_servo_4(angles[3]);
+        servo_angles->set_servo_5(angles[4]);
+        servo_angles->set_servo_6(angles[5]);
+        servo_angles->set_servo_7(angles[6]);
+        servo_angles->set_status_code(status_code_tmp);
         return Status::OK;
     }
 
@@ -105,6 +158,27 @@ class XAPIServiceImpl final : public XAPI::Service {
         return Status::OK;
     }
 
+    Status SetCollisionSensitivity(
+        ServerContext* context,
+        const CollisionSensitivity* collision_sensitivity,
+        CollisionSensitivity* collision_sensitivity_res) override {
+        int status_code_tmp;
+        status_code_tmp = api->set_collision_sensitivity(
+            collision_sensitivity->collision_sensitivity());
+        collision_sensitivity_res->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
+    Status SetTeachSensitivity(
+        ServerContext* context, const TeachSensitivity* teach_sensitivity,
+        TeachSensitivity* teach_sensitivity_res) override {
+        int status_code_tmp;
+        status_code_tmp =
+            api->set_teach_sensitivity(teach_sensitivity->teach_sensitivity());
+        teach_sensitivity_res->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
     Status SetPosition(ServerContext* context, const Position* position,
                        Position* position_res) override {
         int status_code_tmp;
@@ -120,6 +194,78 @@ class XAPIServiceImpl final : public XAPI::Service {
         status_code_tmp = api->set_position(pose, wait);
 
         position_res->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
+    Status SetServoAngles(ServerContext* context,
+                          const ServoAngles* servo_angles,
+                          ServoAngles* servo_angles_res) override {
+        int status_code_tmp;
+        fp32 angles[6];
+        angles[0] = servo_angles->servo_1();
+        angles[1] = servo_angles->servo_2();
+        angles[2] = servo_angles->servo_3();
+        angles[3] = servo_angles->servo_4();
+        angles[4] = servo_angles->servo_5();
+        angles[5] = servo_angles->servo_6();
+        angles[6] = servo_angles->servo_7();
+
+        bool wait = servo_angles->wait();
+
+        status_code_tmp = api->set_servo_angle(angles, wait);
+
+        servo_angles_res->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
+    Status MoveCircle(ServerContext* context, const MoveCircleMsg* move_circle,
+                      MoveCircleMsg* move_circle_res) override {
+        int status_code_tmp;
+        fp32 pose_1[6];
+        pose_1[0] = move_circle->pose_1().x();
+        pose_1[1] = move_circle->pose_1().y();
+        pose_1[2] = move_circle->pose_1().z();
+        pose_1[3] = move_circle->pose_1().roll();
+        pose_1[4] = move_circle->pose_1().yaw();
+        pose_1[5] = move_circle->pose_1().pitch();
+
+        fp32 pose_2[6];
+        pose_2[0] = move_circle->pose_2().x();
+        pose_2[1] = move_circle->pose_2().y();
+        pose_2[2] = move_circle->pose_2().z();
+        pose_2[3] = move_circle->pose_2().roll();
+        pose_2[4] = move_circle->pose_2().yaw();
+        pose_2[5] = move_circle->pose_2().pitch();
+
+        std::cout << "x1 = " << pose_1[0] << "y1 = " << pose_1[1]
+                  << ", z1 = " << pose_1[2] << "\n";
+        std::cout << "x2 = " << pose_2[0] << "y2 = " << pose_2[1]
+                  << ", z2 = " << pose_1[2] << "\n";
+
+        fp32 percent = move_circle->percent();
+        fp32 speed = move_circle->speed();
+        fp32 acc = move_circle->acc();
+
+        bool wait = move_circle->wait();
+        fp32 timeout = move_circle->timeout();
+
+        // @param mvtime: 0, reserved
+        status_code_tmp = api->move_circle(pose_1, pose_2, percent, speed, acc,
+                                           0, wait, timeout);
+
+        move_circle_res->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
+    Status Reset(ServerContext* context, const ResetMsg* reset,
+                 Empty* empty) override {
+        api->reset(reset->wait(), reset->timeout());
+        return Status::OK;
+    }
+
+    Status EmergencyStop(ServerContext* context, const Empty* empty1,
+                         Empty* empty2) override {
+        api->emergency_stop();
         return Status::OK;
     }
 
