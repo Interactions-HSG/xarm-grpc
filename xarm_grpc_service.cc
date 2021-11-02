@@ -269,6 +269,59 @@ class XAPIServiceImpl final : public XAPI::Service {
         return Status::OK;
     }
 
+
+    Status GetInverseKinematics(ServerContext* context, const Position* position,
+                       ServoAngles* servo_angles) override {
+        int status_code_tmp;
+        fp32 pose[6];
+        pose[0] = position->x();
+        pose[1] = position->y();
+        pose[2] = position->z();
+        pose[3] = position->roll();
+        pose[4] = position->yaw();
+        pose[5] = position->pitch();
+
+        fp32 angles[7];
+        status_code_tmp = api->get_inverse_kinematics(pose, angles);
+
+        servo_angles->set_servo_1(angles[0]);
+        servo_angles->set_servo_2(angles[1]);
+        servo_angles->set_servo_3(angles[2]);
+        servo_angles->set_servo_4(angles[3]);
+        servo_angles->set_servo_5(angles[4]);
+        servo_angles->set_servo_6(angles[5]);
+        servo_angles->set_servo_7(angles[6]);
+        servo_angles->set_status_code(status_code_tmp);
+
+        return Status::OK;
+    }
+
+    Status GetForwardKinematics(ServerContext* context,
+                          const ServoAngles* servo_angles,
+                          Position* position) override {
+        int status_code_tmp;
+        fp32 angles[6];
+        angles[0] = servo_angles->servo_1();
+        angles[1] = servo_angles->servo_2();
+        angles[2] = servo_angles->servo_3();
+        angles[3] = servo_angles->servo_4();
+        angles[4] = servo_angles->servo_5();
+        angles[5] = servo_angles->servo_6();
+        angles[6] = servo_angles->servo_7();
+
+        fp32 pose[6];
+        status_code_tmp = api->get_forward_kinematics(angles, pose);
+
+        position->set_x(pose[0]);
+        position->set_y(pose[1]);
+        position->set_z(pose[2]);
+        position->set_roll(pose[3]);
+        position->set_pitch(pose[4]);
+        position->set_yaw(pose[5]);
+        position->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
     XArmAPI* api;
 };
 

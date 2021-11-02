@@ -35,6 +35,9 @@ service XAPI {
   rpc Reset (ResetMsg) returns (Empty);
   rpc EmergencyStop (Empty) returns (Empty);
 
+  rpc GetInverseKinematics (Position) returns (ServoAngles);
+  rpc GetForwardKinematics (ServoAngles) returns (Position);
+
 
 }
 

@@ -313,6 +313,34 @@ class XAPIClient {
         return;
     }
 
+    // Get inverse kinematics
+    ServoAngles GetInverseKinematics(const Position &position) {
+        // Context for the client. It could be used to convey extra information
+        // to the server and/or tweak certain RPC behaviors.
+        ClientContext context;
+        // Container for the data we expect from the server.
+        ServoAngles servo_angles_res;
+
+        Status status =
+            stub_->GetInverseKinematics(&context, position, &servo_angles_res);
+
+        return servo_angles_res;
+    }
+
+    // Get forward kinematics
+    Position GetForwardKinematics(const ServoAngles &servo_angles) {
+        // Context for the client. It could be used to convey extra information
+        // to the server and/or tweak certain RPC behaviors.
+        ClientContext context;
+        // Container for the data we expect from the server.
+        Position position_res;
+
+        Status status =
+            stub_->GetForwardKinematics(&context, servo_angles, &position_res);
+
+        return position_res;
+    }
+
    private:
     // Out of the passed in Channel comes the stub, stored here, our view of the
     // server's exposed services.
@@ -827,6 +855,10 @@ int main(int argc, char **argv) {
             client.MoveCircle(move_circle);  // The actual RPC call!
         std::cout << "Response code: " << move_circle_res.status_code()
                   << std::endl;
+
+        // TODO: do we need to delete the pointers?
+        // delete pose_1;
+        // delete pose_2;
     });
 #pragma endregion set_move_circle
 
@@ -868,6 +900,111 @@ int main(int argc, char **argv) {
         std::cout << "Reset sent." << std::endl;
     });
 #pragma endregion reset
+
+#pragma region get_inverse_kinematics
+    // Subcommand: get_inverse_kinematics
+    auto *get_inverse_kinematics = app.add_subcommand(
+        "get_inverse_kinematics", "send a get_inverse_kinematics command");
+
+    x_option = constants::kDefaultPosX;
+    get_inverse_kinematics->add_option("-x", x_option, "x(mm)");
+    y_option = constants::kDefaultPosYaw;
+    get_inverse_kinematics->add_option("-y", y_option, "y(mm)");
+    z_option = constants::kDefaultPosZ;
+    get_inverse_kinematics->add_option("-z", z_option, "z(mm)");
+    roll_option = constants::kDefaultPosRoll;
+    get_inverse_kinematics->add_option("-r, --roll", roll_option,
+                                       "roll(rad or °)");
+    pitch_option = constants::kDefaultPosPitch;
+    get_inverse_kinematics->add_option("-p, --pitch", pitch_option,
+                                       "pitch(rad or °)");
+    yaw_option = constants::kDefaultPosYaw;
+    get_inverse_kinematics->add_option("-w, --yaw", yaw_option,
+                                       "yaw(rad or °)");
+
+    get_inverse_kinematics->callback([&]() {
+        XAPIClient client(
+            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
+                                grpc::InsecureChannelCredentials()));
+        Position position;
+        position.set_x(x_option);
+        position.set_y(y_option);
+        position.set_z(z_option);
+        position.set_roll(roll_option);
+        position.set_pitch(pitch_option);
+        position.set_yaw(yaw_option);
+        position.set_wait(wait_option);
+
+        ServoAngles servo_angles;
+
+        servo_angles =
+            client.GetInverseKinematics(position);  // The actual RPC call!
+        std::cout << "ServoAngles: \n"
+                  << "    \"servo_1\": " << servo_angles.servo_1() << "\n"
+                  << "    \"servo_2\": " << servo_angles.servo_2() << "\n"
+                  << "    \"servo_3\": " << servo_angles.servo_3() << "\n"
+                  << "    \"servo_4\": " << servo_angles.servo_4() << "\n"
+                  << "    \"servo_5\": " << servo_angles.servo_5() << "\n"
+                  << "    \"servo_6\": " << servo_angles.servo_6() << "\n"
+                  << "    \"servo_7\": " << servo_angles.servo_7() << std::endl;
+        std::cout << "Response code: " << servo_angles.status_code()
+                  << std::endl;
+    });
+#pragma endregion get_inverse_kinematics
+
+#pragma region get_forward_kinematics
+    // Subcommand: get_forward_kinematics
+    auto *get_forward_kinematics = app.add_subcommand(
+        "get_forward_kinematics", "send a get_forward_kinematics command");
+
+    servo_1_option = constants::kDefaultAng1;
+    get_forward_kinematics->add_option("-1", servo_1_option,
+                                       "servo-1(rad or °)");
+    servo_2_option = constants::kDefaultAng2;
+    get_forward_kinematics->add_option("-2", servo_2_option,
+                                       "servo-2(rad or °)");
+    servo_3_option = constants::kDefaultAng3;
+    get_forward_kinematics->add_option("-3", servo_3_option,
+                                       "servo-3(rad or °)");
+    servo_4_option = constants::kDefaultAng4;
+    get_forward_kinematics->add_option("-4", servo_4_option,
+                                       "servo-4(rad or °)");
+    servo_5_option = constants::kDefaultAng5;
+    get_forward_kinematics->add_option("-5", servo_5_option,
+                                       "servo-5(rad or °)");
+    servo_6_option = constants::kDefaultAng6;
+    get_forward_kinematics->add_option("-6", servo_6_option,
+                                       "servo-6(rad or °)");
+    servo_7_option = constants::kDefaultAng7;
+    get_forward_kinematics->add_option("-7", servo_7_option,
+                                       "servo-7(rad or °)");
+
+    get_forward_kinematics->callback([&]() {
+        XAPIClient client(
+            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
+                                grpc::InsecureChannelCredentials()));
+        ServoAngles servo_angles;
+        servo_angles.set_servo_1(servo_1_option);
+        servo_angles.set_servo_2(servo_2_option);
+        servo_angles.set_servo_3(servo_3_option);
+        servo_angles.set_servo_4(servo_4_option);
+        servo_angles.set_servo_5(servo_5_option);
+        servo_angles.set_servo_6(servo_6_option);
+        servo_angles.set_servo_7(servo_7_option);
+
+        Position position;
+        position =
+            client.GetForwardKinematics(servo_angles);  // The actual RPC call!
+        std::cout << "Position: \n"
+                  << "    \"x\": " << position.x() << "\n"
+                  << "    \"y\": " << position.y() << "\n"
+                  << "    \"z\": " << position.z() << "\n"
+                  << "    \"roll\": " << position.roll() << "\n"
+                  << "    \"pitch\": " << position.pitch() << "\n"
+                  << "    \"yaw\": " << position.yaw() << std::endl;
+        std::cout << "Response code: " << position.status_code() << std::endl;
+    });
+#pragma endregion get_forward_kinematics
 
     CLI11_PARSE(app, argc, argv);
 
