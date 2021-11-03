@@ -35,7 +35,7 @@ service XAPI {
   rpc SetTeachSensitivity (TeachSensitivity) returns (TeachSensitivity);
 
   rpc SetPosition (SetPositionMsg) returns (SetPositionMsg);
-  rpc SetServoAngles (ServoAngles) returns (ServoAngles);
+  rpc SetServoAngle (SetServoAngleMsg) returns (SetServoAngleMsg);
   rpc MoveCircle (MoveCircleMsg) returns (MoveCircleMsg);
 
   rpc Reset (ResetMsg) returns (Empty);
@@ -148,7 +148,6 @@ message Position {
 }
 
 message ServoAngles {
-  // TODO(jo-bru): add oneof to handle polymorphism
   int32 status_code = 1;
   float servo_1 = 2;
   float servo_2 = 3;
@@ -157,7 +156,11 @@ message ServoAngles {
   float servo_5 = 6;
   float servo_6 = 7;
   float servo_7 = 8;
-  bool wait = 9;
+}
+
+message ServoAngle {
+    int32 servo_id = 1;
+    float angle = 2;
 }
 
 
@@ -181,6 +184,20 @@ message SetPositionMsg {
   float mvtime = 7;
   bool wait = 8;
   float timeout = 9;
+}
+
+message SetServoAngleMsg {
+  int32 status_code = 1;
+  oneof input {
+      ServoAngles servo_angles = 2;
+      ServoAngle servo_angle = 3;
+  }
+  float speed = 4;
+  float acc = 5;
+  float mvtime = 6;
+  bool wait = 7;
+  float timeout = 8;
+  float radius = 9;
 }
 
 message MoveCircleMsg {

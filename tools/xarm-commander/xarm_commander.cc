@@ -23,12 +23,12 @@ constexpr float kDefaultPosRoll = 180;  // [Deg] by default
 constexpr float kDefaultPosPitch = 0;   // [Deg] by default
 constexpr float kDefaultPosYaw = 0;     // [Deg] by default
 // default servo angles
-constexpr float kDefaultAng1 = 0;
-constexpr float kDefaultAng2 = 0;
-constexpr float kDefaultAng3 = 0;
-constexpr float kDefaultAng4 = 0;
+constexpr float kDefaultAng1 = 1.75887;
+constexpr float kDefaultAng2 = -10.804;
+constexpr float kDefaultAng3 = -1.93244;
+constexpr float kDefaultAng4 = 16.7949;
 constexpr float kDefaultAng5 = 0;
-constexpr float kDefaultAng6 = 0;
+constexpr float kDefaultAng6 = 27.5947;
 constexpr float kDefaultAng7 = 0;
 
 constexpr int kAllServo = 8;
@@ -48,11 +48,14 @@ using xapi::InitParam;
 using xapi::Mode;
 using xapi::MotionEnable;
 using xapi::MoveCircleMsg;
+using xapi::PauseTime;
 using xapi::Position;
 using xapi::ResetMsg;
 using xapi::RobotSN;
+using xapi::ServoAngle;
 using xapi::ServoAngles;
 using xapi::SetPositionMsg;
+using xapi::SetServoAngleMsg;
 using xapi::SimulationRobot;
 using xapi::State;
 using xapi::TeachSensitivity;
@@ -60,7 +63,6 @@ using xapi::Temperatures;
 using xapi::Version;
 using xapi::Voltages;
 using xapi::XAPI;
-using xapi::PauseTime;
 
 class XAPIClient {
    public:
@@ -290,7 +292,8 @@ class XAPIClient {
         // Container for the data we expect from the server.
         PauseTime pause_time_res;
 
-        Status status = stub_->SetPauseTime(&context, pause_time, &pause_time_res);
+        Status status =
+            stub_->SetPauseTime(&context, pause_time, &pause_time_res);
 
         return pause_time_res;
     }
@@ -340,17 +343,18 @@ class XAPIClient {
     }
 
     // Set the xArm servo_angles
-    ServoAngles SetServoAngles(const ServoAngles &servo_angles) {
+    SetServoAngleMsg SetServoAngle(
+        const SetServoAngleMsg &set_servo_angle_msg) {
         // Context for the client. It could be used to convey extra information
         // to the server and/or tweak certain RPC behaviors.
         ClientContext context;
         // Container for the data we expect from the server.
-        ServoAngles servo_angles_res;
+        SetServoAngleMsg set_servo_angle_msg_res;
 
-        Status status =
-            stub_->SetServoAngles(&context, servo_angles, &servo_angles_res);
+        Status status = stub_->SetServoAngle(&context, set_servo_angle_msg,
+                                             &set_servo_angle_msg_res);
 
-        return servo_angles_res;
+        return set_servo_angle_msg_res;
     }
 
     // The motion calculates the trajectory of the space circle according to the
@@ -837,12 +841,11 @@ int main(int argc, char **argv) {
 
 #pragma region set_pause_time
     // Subcommand: set_pause_time
-    auto *set_pause_time = app.add_subcommand("set_pause_time", "send a set_pause_time command");
+    auto *set_pause_time =
+        app.add_subcommand("set_pause_time", "send a set_pause_time command");
 
     float pause_time_option = 0;
-    set_pause_time->add_option(
-        "-p", pause_time_option,
-        "pause time [s]");
+    set_pause_time->add_option("-p", pause_time_option, "pause time [s]");
 
     set_pause_time->callback([&]() {
         XAPIClient client(
@@ -851,8 +854,10 @@ int main(int argc, char **argv) {
         PauseTime pause_time;
         PauseTime pause_time_res;
         pause_time.set_sltime(pause_time_option);
-        pause_time_res = client.SetPauseTime(pause_time);  // The actual RPC call!
-        std::cout << "Response code: " << pause_time_res.status_code() << std::endl;
+        pause_time_res =
+            client.SetPauseTime(pause_time);  // The actual RPC call!
+        std::cout << "Response code: " << pause_time_res.status_code()
+                  << std::endl;
     });
 #pragma endregion set_pause_time
 
@@ -974,52 +979,104 @@ int main(int argc, char **argv) {
     });
 #pragma endregion set_postion
 
-#pragma region set_servo_angles
-    // Subcommand: set_servo_angles
-    auto *set_servo_angles = app.add_subcommand(
-        "set_servo_angles", "send a set_servo_angles command");
+#pragma region set_servo_angle
+    // Subcommand: set_servo_angle
+    auto *set_servo_angle =
+        app.add_subcommand("set_servo_angle", "send a set_servo_angle command");
+
+    int servo_id_option = 1;
+    CLI::Option *single_angle_option = set_servo_angle->add_option(
+        "-i, --id", servo_id_option,
+        "servo id, 1~7, specify the joint ID to set");
+    float angle_option = 0;
+    set_servo_angle
+        ->add_option("-a, --angle", angle_option,
+                     "servo angle(rad or °), use with servo_id parameters")
+        ->needs(single_angle_option);
 
     float servo_1_option = constants::kDefaultAng1;
-    set_servo_angles->add_option("-1", servo_1_option, "servo-1(rad or °)");
+    set_servo_angle->add_option("-1", servo_1_option, "servo-1(rad or °)")
+        ->excludes(single_angle_option);
     float servo_2_option = constants::kDefaultAng2;
-    set_servo_angles->add_option("-2", servo_2_option, "servo-2(rad or °)");
+    set_servo_angle->add_option("-2", servo_2_option, "servo-2(rad or °)")
+        ->excludes(single_angle_option);
     float servo_3_option = constants::kDefaultAng3;
-    set_servo_angles->add_option("-3", servo_3_option, "servo-3(rad or °)");
+    set_servo_angle->add_option("-3", servo_3_option, "servo-3(rad or °)")
+        ->excludes(single_angle_option);
     float servo_4_option = constants::kDefaultAng4;
-    set_servo_angles->add_option("-4", servo_4_option, "servo-4(rad or °)");
+    set_servo_angle->add_option("-4", servo_4_option, "servo-4(rad or °)")
+        ->excludes(single_angle_option);
     float servo_5_option = constants::kDefaultAng5;
-    set_servo_angles->add_option("-5", servo_5_option, "servo-5(rad or °)");
+    set_servo_angle->add_option("-5", servo_5_option, "servo-5(rad or °)")
+        ->excludes(single_angle_option);
     float servo_6_option = constants::kDefaultAng6;
-    set_servo_angles->add_option("-6", servo_6_option, "servo-6(rad or °)");
+    set_servo_angle->add_option("-6", servo_6_option, "servo-6(rad or °)")
+        ->excludes(single_angle_option);
     float servo_7_option = constants::kDefaultAng7;
-    set_servo_angles->add_option("-7", servo_7_option, "servo-7(rad or °)");
+    set_servo_angle->add_option("-7", servo_7_option, "servo-7(rad or °)")
+        ->excludes(single_angle_option);
 
-    wait_option = false;  // TODO(jo-bru): namespace/scope
-    set_servo_angles->add_option("--wait", wait_option,
-                                 "whether to wait for the arm to complete");
+    speed_option = 0;
+    set_servo_angle->add_option(
+        "--speed", speed_option,
+        "move speed (mm/s, rad/s), default(0) is the last_used_tcp_speed");
+    acc_option = 0;
+    set_servo_angle->add_option(
+        "--acc", acc_option,
+        "move acceleration (mm/s^2, rad/s^2), default(0) "
+        "is the last_used_tcp_acc");
 
-    set_servo_angles->callback([&]() {
+    wait_option = false;
+    set_servo_angle->add_option("--wait", wait_option,
+                                "whether to wait for the arm to complete");
+    timeout_option = -1;
+    set_servo_angle->add_option(
+        "--timeout", timeout_option,
+        "maximum waiting time(unit: second), -1: no timeout");
+
+    radius_option = -1;
+    set_servo_angle->add_option("--radius", radius_option,
+                                "for arc transitions ( <0: deceleration, 0: "
+                                "continous, >0: arc transition");
+
+    set_servo_angle->callback([&]() {
         XAPIClient client(
             grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
                                 grpc::InsecureChannelCredentials()));
-        ServoAngles servo_angles;
-        ServoAngles servo_angles_res;
-        servo_angles.set_servo_1(servo_1_option);
-        servo_angles.set_servo_2(servo_2_option);
-        servo_angles.set_servo_3(servo_3_option);
-        servo_angles.set_servo_4(servo_4_option);
-        servo_angles.set_servo_5(servo_5_option);
-        servo_angles.set_servo_6(servo_6_option);
-        servo_angles.set_servo_7(servo_7_option);
 
-        servo_angles.set_wait(wait_option);
+        SetServoAngleMsg set_servo_angle_msg;
+        // oneof: single angle or all angles
+        if (*single_angle_option) {
+            ServoAngle *servo_angle = new ServoAngle();
+            servo_angle->set_servo_id(servo_id_option);
+            servo_angle->set_angle(angle_option);
+            set_servo_angle_msg.set_allocated_servo_angle(servo_angle);
 
-        servo_angles_res =
-            client.SetServoAngles(servo_angles);  // The actual RPC call!
-        std::cout << "Response code: " << servo_angles_res.status_code()
+        } else {
+            ServoAngles *servo_angles = new ServoAngles();
+            servo_angles->set_servo_1(servo_1_option);
+            servo_angles->set_servo_2(servo_2_option);
+            servo_angles->set_servo_3(servo_3_option);
+            servo_angles->set_servo_4(servo_4_option);
+            servo_angles->set_servo_5(servo_5_option);
+            servo_angles->set_servo_6(servo_6_option);
+            servo_angles->set_servo_7(servo_7_option);
+            set_servo_angle_msg.set_allocated_servo_angles(servo_angles);
+        }
+
+        set_servo_angle_msg.set_speed(speed_option);
+        set_servo_angle_msg.set_acc(acc_option);
+        set_servo_angle_msg.set_wait(wait_option);
+        set_servo_angle_msg.set_timeout(timeout_option);
+        set_servo_angle_msg.set_radius(radius_option);
+
+        SetServoAngleMsg set_servo_angle_msg_res;
+        set_servo_angle_msg_res =
+            client.SetServoAngle(set_servo_angle_msg);  // The actual RPC call!
+        std::cout << "Response code: " << set_servo_angle_msg_res.status_code()
                   << std::endl;
     });
-#pragma endregion set_servo_angles
+#pragma endregion set_servo_angle
 
 #pragma region move_circle
     // Subcommand: move_circle

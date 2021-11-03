@@ -21,14 +21,16 @@ using xapi::Currents;
 using xapi::Empty;
 using xapi::InitParam;
 using xapi::Mode;
-using xapi::PauseTime;
 using xapi::MotionEnable;
 using xapi::MoveCircleMsg;
+using xapi::PauseTime;
 using xapi::Position;
 using xapi::ResetMsg;
 using xapi::RobotSN;
+using xapi::ServoAngle;
 using xapi::ServoAngles;
 using xapi::SetPositionMsg;
+using xapi::SetServoAngleMsg;
 using xapi::SimulationRobot;
 using xapi::State;
 using xapi::TeachSensitivity;
@@ -248,13 +250,12 @@ class XAPIServiceImpl final : public XAPI::Service {
     }
 
     Status SetPauseTime(ServerContext* context, const PauseTime* pause_time,
-                   PauseTime* pause_time_res) override {
+                        PauseTime* pause_time_res) override {
         int status_code_tmp;
         status_code_tmp = api->set_pause_time(pause_time->sltime());
         pause_time_res->set_status_code(status_code_tmp);
         return Status::OK;
     }
-
 
     Status SetCollisionSensitivity(
         ServerContext* context,
@@ -301,8 +302,6 @@ class XAPIServiceImpl final : public XAPI::Service {
                                           // => when not set => default: -1 (use
                                           // optional or singleton oneof)
 
-        std::cout << "Radius: " << radius << "\n";
-
         status_code_tmp =
             api->set_position(pose, radius, speed, acc, 0, wait, timeout);
 
@@ -310,24 +309,47 @@ class XAPIServiceImpl final : public XAPI::Service {
         return Status::OK;
     }
 
-    Status SetServoAngles(ServerContext* context,
-                          const ServoAngles* servo_angles,
-                          ServoAngles* servo_angles_res) override {
+    Status SetServoAngle(ServerContext* context,
+                         const SetServoAngleMsg* set_servo_angle_msg,
+                         SetServoAngleMsg* set_servo_angle_msg_res) override {
         int status_code_tmp;
-        fp32 angles[6];
-        angles[0] = servo_angles->servo_1();
-        angles[1] = servo_angles->servo_2();
-        angles[2] = servo_angles->servo_3();
-        angles[3] = servo_angles->servo_4();
-        angles[4] = servo_angles->servo_5();
-        angles[5] = servo_angles->servo_6();
-        angles[6] = servo_angles->servo_7();
 
-        bool wait = servo_angles->wait();
+        fp32 speed = set_servo_angle_msg->speed();
+        fp32 acc = set_servo_angle_msg->acc();
+        bool wait = set_servo_angle_msg->wait();
+        fp32 timeout = set_servo_angle_msg
+                           ->timeout();  // TODO(jo-bru): handle default value
+                                         // => when not set => default: -1 (use
+                                         // optional or singleton oneof)
+        fp32 radius = set_servo_angle_msg
+                          ->radius();  // TODO(jo-bru): handle default value
+                                       // => when not set => default: -1 (use
+                                       // optional or singleton oneof)
 
-        status_code_tmp = api->set_servo_angle(angles, wait);
+        // oneof: single angle or all angles
+        if (set_servo_angle_msg->has_servo_angle()) {
+            std::cout << "Singe angle.."
+                      << "\n";
+            int servo_id = set_servo_angle_msg->servo_angle().servo_id();
+            fp32 angle = set_servo_angle_msg->servo_angle().angle();
 
-        servo_angles_res->set_status_code(status_code_tmp);
+            status_code_tmp = api->set_servo_angle(servo_id, angle, speed, acc,
+                                                   0, wait, timeout, wait);
+        } else {
+            fp32 angles[7];
+            angles[0] = set_servo_angle_msg->servo_angles().servo_1();
+            angles[1] = set_servo_angle_msg->servo_angles().servo_2();
+            angles[2] = set_servo_angle_msg->servo_angles().servo_3();
+            angles[3] = set_servo_angle_msg->servo_angles().servo_4();
+            angles[4] = set_servo_angle_msg->servo_angles().servo_5();
+            angles[5] = set_servo_angle_msg->servo_angles().servo_6();
+            angles[6] = set_servo_angle_msg->servo_angles().servo_7();
+
+            status_code_tmp = api->set_servo_angle(angles, speed, acc, 0, wait,
+                                                   timeout, wait);
+        }
+
+        set_servo_angle_msg_res->set_status_code(status_code_tmp);
         return Status::OK;
     }
 
