@@ -42,6 +42,7 @@ using grpc::ClientContext;
 using grpc::Status;
 using xapi::Cmdnum;
 using xapi::CollisionSensitivity;
+using xapi::Currents;
 using xapi::Empty;
 using xapi::InitParam;
 using xapi::Mode;
@@ -49,11 +50,14 @@ using xapi::MotionEnable;
 using xapi::MoveCircleMsg;
 using xapi::Position;
 using xapi::ResetMsg;
+using xapi::RobotSN;
 using xapi::ServoAngles;
+using xapi::SimulationRobot;
 using xapi::State;
 using xapi::TeachSensitivity;
-using xapi::SimulationRobot;
+using xapi::Temperatures;
 using xapi::Version;
+using xapi::Voltages;
 using xapi::XAPI;
 
 class XAPIClient {
@@ -96,6 +100,15 @@ class XAPIClient {
     }
 
     // ===== Read methods =====
+    // Get the xArm mode
+    Mode GetMode() {
+        Empty empty;
+        Mode mode;
+        ClientContext context;
+        Status status = stub_->GetMode(&context, empty, &mode);
+        return mode;
+    }
+
     // Get the xArm collision sensitivity
     CollisionSensitivity GetCollisionSensitivity() {
         Empty empty;
@@ -118,17 +131,48 @@ class XAPIClient {
         return teach_sensitivity;
     }
 
+    // Get the xArm motor temperatures
+    Temperatures GetTemperatures() {
+        Empty empty;
+        Temperatures temperatures;
+        ClientContext context;
+        Status status = stub_->GetTemperatures(&context, empty, &temperatures);
+
+        return temperatures;
+    }
+
+    // Get the xArm motor voltages
+    Voltages GetVoltages() {
+        Empty empty;
+        Voltages voltages;
+        ClientContext context;
+        Status status = stub_->GetVoltages(&context, empty, &voltages);
+
+        return voltages;
+    }
+
+    // Get the xArm motor currents
+    Currents GetCurrents() {
+        Empty empty;
+        Currents currents;
+        ClientContext context;
+        Status status = stub_->GetCurrents(&context, empty, &currents);
+
+        return currents;
+    }
+
+    // Get is_simulation_robot
     SimulationRobot GetSimulationRobot() {
         Empty empty;
         SimulationRobot simulation_robot;
         ClientContext context;
-        Status status = stub_->GetSimulationRobot(&context, empty,
-                                                       &simulation_robot);
+        Status status =
+            stub_->GetSimulationRobot(&context, empty, &simulation_robot);
 
         return simulation_robot;
     }
 
-    // Get the xArm version
+    // Get the xArm robot_sn
     Version GetVersion() {
         Empty empty;
         Version version;
@@ -140,6 +184,16 @@ class XAPIClient {
         //  return version;
         //}
         return version;
+    }
+
+    // Get the xArm robot_sn
+    RobotSN GetRobotSN() {
+        Empty empty;
+        std::cout << "This is called. ";
+        RobotSN robot_sn;
+        ClientContext context;
+        Status status = stub_->GetRobotSN(&context, empty, &robot_sn);
+        return robot_sn;
     }
 
     // Get the xArm state
@@ -353,18 +407,19 @@ class XAPIClient {
     }
 
     // Set the simulation robot
-    SimulationRobot SetSimulationRobot(const SimulationRobot &simulation_robot) {
+    SimulationRobot SetSimulationRobot(
+        const SimulationRobot &simulation_robot) {
         // Context for the client. It could be used to convey extra information
         // to the server and/or tweak certain RPC behaviors.
         ClientContext context;
         // Container for the data we expect from the server.
         SimulationRobot simulation_robot_res;
 
-        Status status = stub_->SetSimulationRobot(&context, simulation_robot, &simulation_robot_res);
+        Status status = stub_->SetSimulationRobot(&context, simulation_robot,
+                                                  &simulation_robot_res);
 
         return simulation_robot_res;
     }
-
 
    private:
     // Out of the passed in Channel comes the stub, stored here, our view of the
@@ -445,6 +500,20 @@ int main(int argc, char **argv) {
 #pragma endregion initialize
 
     // ----- Read methods -----
+#pragma region get_mode
+    // Subcommand: get_mode
+    auto *get_mode = app.add_subcommand("get_mode", "send a get_mode command");
+    get_mode->callback([&]() {
+        XAPIClient client(
+            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
+                                grpc::InsecureChannelCredentials()));
+        Mode mode;
+        mode = client.GetMode();  // The actual RPC call!
+        std::cout << "Mode: " << mode.mode() << std::endl;
+        std::cout << "Response code: " << mode.status_code() << std::endl;
+    });
+#pragma endregion get_mode
+
 #pragma region get_collision_sensitivity
     // Subcommand: get_collision_sensitivity
     auto *get_collision_sensitivity =
@@ -482,20 +551,84 @@ int main(int argc, char **argv) {
     });
 #pragma endregion get_teach_sensitivity
 
+#pragma region get_temperatures
+    // Subcommand: get_temperatures
+    auto *get_temperatures = app.add_subcommand(
+        "get_temperatures", "send a get_temperatures command");
+    get_temperatures->callback([&]() {
+        XAPIClient client(
+            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
+                                grpc::InsecureChannelCredentials()));
+        Temperatures temperatures;
+        temperatures = client.GetTemperatures();  // The actual RPC call!
+        std::cout << "Temperatures: \n"
+                  << "    \"servo_1\": " << temperatures.servo_1() << "\n"
+                  << "    \"servo_2\": " << temperatures.servo_2() << "\n"
+                  << "    \"servo_3\": " << temperatures.servo_3() << "\n"
+                  << "    \"servo_4\": " << temperatures.servo_4() << "\n"
+                  << "    \"servo_5\": " << temperatures.servo_5() << "\n"
+                  << "    \"servo_6\": " << temperatures.servo_6() << "\n"
+                  << "    \"servo_7\": " << temperatures.servo_7() << std::endl;
+        std::cout << "Response code: " << temperatures.status_code()
+                  << std::endl;
+    });
+#pragma endregion get_temperatures
+
+#pragma region get_voltages
+    // Subcommand: get_voltages
+    auto *get_voltages =
+        app.add_subcommand("get_voltages", "send a get_voltages command");
+    get_voltages->callback([&]() {
+        XAPIClient client(
+            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
+                                grpc::InsecureChannelCredentials()));
+        Voltages voltages;
+        voltages = client.GetVoltages();  // The actual RPC call!
+        std::cout << "Voltages: \n"
+                  << "    \"servo_1\": " << voltages.servo_1() << "\n"
+                  << "    \"servo_2\": " << voltages.servo_2() << "\n"
+                  << "    \"servo_3\": " << voltages.servo_3() << "\n"
+                  << "    \"servo_4\": " << voltages.servo_4() << "\n"
+                  << "    \"servo_5\": " << voltages.servo_5() << "\n"
+                  << "    \"servo_6\": " << voltages.servo_6() << "\n"
+                  << "    \"servo_7\": " << voltages.servo_7() << std::endl;
+        std::cout << "Response code: " << voltages.status_code() << std::endl;
+    });
+#pragma endregion get_voltages
+
+#pragma region get_currents
+    // Subcommand: get_currents
+    auto *get_currents =
+        app.add_subcommand("get_currents", "send a get_currents command");
+    get_currents->callback([&]() {
+        XAPIClient client(
+            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
+                                grpc::InsecureChannelCredentials()));
+        Currents currents;
+        currents = client.GetCurrents();  // The actual RPC call!
+        std::cout << "Currents: \n"
+                  << "    \"servo_1\": " << currents.servo_1() << "\n"
+                  << "    \"servo_2\": " << currents.servo_2() << "\n"
+                  << "    \"servo_3\": " << currents.servo_3() << "\n"
+                  << "    \"servo_4\": " << currents.servo_4() << "\n"
+                  << "    \"servo_5\": " << currents.servo_5() << "\n"
+                  << "    \"servo_6\": " << currents.servo_6() << "\n"
+                  << "    \"servo_7\": " << currents.servo_7() << std::endl;
+        std::cout << "Response code: " << currents.status_code() << std::endl;
+    });
+#pragma endregion get_currents
+
 #pragma region get_simulation_robot
     // Subcommand: get_simulation_robot
-    auto *get_simulation_robot =
-        app.add_subcommand("get_simulation_robot",
-                           "send a get_simulation_robot command");
+    auto *get_simulation_robot = app.add_subcommand(
+        "get_simulation_robot", "send a get_simulation_robot command");
     get_simulation_robot->callback([&]() {
         XAPIClient client(
             grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
                                 grpc::InsecureChannelCredentials()));
         SimulationRobot simulation_robot;
-        simulation_robot =
-            client.GetSimulationRobot();  // The actual RPC call!
-        std::cout << "Simulation mode: "
-                  << simulation_robot.on() << std::endl;
+        simulation_robot = client.GetSimulationRobot();  // The actual RPC call!
+        std::cout << "Simulation mode: " << simulation_robot.on() << std::endl;
         std::cout << "Response code: " << simulation_robot.status_code()
                   << std::endl;
     });
@@ -515,6 +648,21 @@ int main(int argc, char **argv) {
         std::cout << "Response code: " << version.status_code() << std::endl;
     });
 #pragma endregion get_version
+
+#pragma region get_robot_sn
+    // Subcommand: get_robot_sn
+    auto *get_robot_sn =
+        app.add_subcommand("get_robot_sn", "send a get_robot_sn command");
+    get_robot_sn->callback([&]() {
+        XAPIClient client(
+            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
+                                grpc::InsecureChannelCredentials()));
+        RobotSN robot_sn;
+        robot_sn = client.GetRobotSN();  // The actual RPC call!
+        std::cout << "RobotSN: " << robot_sn.robot_sn() << std::endl;
+        std::cout << "Response code: " << robot_sn.status_code() << std::endl;
+    });
+#pragma endregion get_robot_sn
 
 #pragma region get_state
     // Subcommand: get_state
@@ -1052,12 +1200,12 @@ int main(int argc, char **argv) {
 
 #pragma region set_simulation_robot
     // Subcommand: set_simulation_robot
-    auto *set_simulation_robot =
-        app.add_subcommand("set_simulation_robot", "send a set_simulation_robot command");
+    auto *set_simulation_robot = app.add_subcommand(
+        "set_simulation_robot", "send a set_simulation_robot command");
 
     bool on_option = true;
     set_simulation_robot->add_option("-o, --on", on_option,
-                          "on: enable(true) or not(false)");
+                                     "on: enable(true) or not(false)");
 
     set_simulation_robot->callback([&]() {
         XAPIClient client(
@@ -1066,8 +1214,10 @@ int main(int argc, char **argv) {
         SimulationRobot simulation_robot;
         SimulationRobot simulation_robot_res;
         simulation_robot.set_on(on_option);
-        simulation_robot_res = client.SetSimulationRobot(simulation_robot);  // The actual RPC call!
-        std::cout << "Response code: " << simulation_robot_res.status_code() << std::endl;
+        simulation_robot_res = client.SetSimulationRobot(
+            simulation_robot);  // The actual RPC call!
+        std::cout << "Response code: " << simulation_robot_res.status_code()
+                  << std::endl;
     });
 #pragma endregion set_simulation_robot
 

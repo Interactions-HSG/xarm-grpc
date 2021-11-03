@@ -17,6 +17,7 @@ using grpc::ServerContext;
 using grpc::Status;
 using xapi::Cmdnum;
 using xapi::CollisionSensitivity;
+using xapi::Currents;
 using xapi::Empty;
 using xapi::InitParam;
 using xapi::Mode;
@@ -24,11 +25,14 @@ using xapi::MotionEnable;
 using xapi::MoveCircleMsg;
 using xapi::Position;
 using xapi::ResetMsg;
+using xapi::RobotSN;
 using xapi::ServoAngles;
 using xapi::SimulationRobot;
 using xapi::State;
 using xapi::TeachSensitivity;
+using xapi::Temperatures;
 using xapi::Version;
+using xapi::Voltages;
 using xapi::XAPI;
 
 // XAPI server
@@ -47,6 +51,16 @@ class XAPIServiceImpl final : public XAPI::Service {
     }
 
     // ===== Read methods =====
+
+    Status GetMode(ServerContext* context, const Empty* empty,
+                   Mode* mode) override {
+        int status_code_tmp = 0;  // TODO(jo-bru): status code for properties
+        int mode_tmp = api->mode;
+        mode->set_mode(mode_tmp);
+        mode->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
     Status GetCollisionSensitivity(
         ServerContext* context, const Empty* empty,
         CollisionSensitivity* collision_sensitivity) override {
@@ -64,6 +78,55 @@ class XAPIServiceImpl final : public XAPI::Service {
         int teach_sensitivity_tmp = api->teach_sensitivity;
         teach_sensitivity->set_teach_sensitivity(teach_sensitivity_tmp);
         teach_sensitivity->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
+    Status GetTemperatures(ServerContext* context, const Empty* empty,
+                           Temperatures* temperatures) override {
+        int status_code_tmp = 0;  // TODO(jo-bru): status code for properties
+        fp32* temp;
+        temp = api->temperatures;
+        temperatures->set_servo_1(*(temp));
+        temperatures->set_servo_2(*(temp + 1));
+        temperatures->set_servo_3(*(temp + 2));
+        temperatures->set_servo_4(*(temp + 3));
+        temperatures->set_servo_5(*(temp + 4));
+        temperatures->set_servo_6(*(temp + 5));
+        temperatures->set_servo_7(*(temp + 6));
+        temperatures->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
+    Status GetVoltages(ServerContext* context, const Empty* empty,
+                       Voltages* voltages) override {
+        int status_code_tmp = 0;  // TODO(jo-bru): status code for properties
+        fp32* volt;
+        volt = api->voltages;
+        voltages->set_servo_1(*(volt));
+        voltages->set_servo_2(*(volt + 1));
+        voltages->set_servo_3(*(volt + 2));
+        voltages->set_servo_4(*(volt + 3));
+        voltages->set_servo_5(*(volt + 4));
+        voltages->set_servo_6(*(volt + 5));
+        voltages->set_servo_7(*(volt + 6));
+        voltages->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
+    Status GetCurrents(ServerContext* context, const Empty* empty,
+                       Currents* currents) override {
+        int status_code_tmp = 0;  // TODO(jo-bru): status code for properties
+        fp32* curr;
+        curr = api->currents;
+        currents->set_servo_1(*(curr));
+        currents->set_servo_2(*(curr + 1));
+        currents->set_servo_3(*(curr + 2));
+        currents->set_servo_4(*(curr + 3));
+        currents->set_servo_5(*(curr + 4));
+        currents->set_servo_6(*(curr + 5));
+        currents->set_servo_7(*(curr + 6));
+        currents->set_status_code(status_code_tmp);
+        currents->set_status_code(status_code_tmp);
         return Status::OK;
     }
 
@@ -87,6 +150,20 @@ class XAPIServiceImpl final : public XAPI::Service {
         version_str.resize(version_str.find('\0'));
         version->set_version(version_str);
         version->set_status_code(status_code);
+        return Status::OK;
+    }
+
+    Status GetRobotSN(ServerContext* context, const Empty* empty,
+                      RobotSN* robot_sn) override {
+        int status_code;
+        unsigned char robot_sn_char[40];
+        status_code = api->get_robot_sn(robot_sn_char);
+        std::string robot_sn_str(
+            robot_sn_char,
+            robot_sn_char + sizeof robot_sn_char / sizeof robot_sn_char[0]);
+        robot_sn_str.resize(robot_sn_str.find('\0'));
+        robot_sn->set_robot_sn(robot_sn_str);
+        robot_sn->set_status_code(status_code);
         return Status::OK;
     }
 
@@ -246,11 +323,6 @@ class XAPIServiceImpl final : public XAPI::Service {
         pose_2[3] = move_circle->pose_2().roll();
         pose_2[4] = move_circle->pose_2().yaw();
         pose_2[5] = move_circle->pose_2().pitch();
-
-        std::cout << "x1 = " << pose_1[0] << "y1 = " << pose_1[1]
-                  << ", z1 = " << pose_1[2] << "\n";
-        std::cout << "x2 = " << pose_2[0] << "y2 = " << pose_2[1]
-                  << ", z2 = " << pose_1[2] << "\n";
 
         fp32 percent = move_circle->percent();
         fp32 speed = move_circle->speed();

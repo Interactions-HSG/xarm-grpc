@@ -12,10 +12,15 @@ service XAPI {
   rpc Disconnect (Empty) returns (Empty);
   
   // Read services
+  rpc GetMode (Empty) returns (Mode);
   rpc GetCollisionSensitivity (Empty) returns (CollisionSensitivity);
   rpc GetTeachSensitivity (Empty) returns (TeachSensitivity);
+  rpc GetTemperatures (Empty) returns (Temperatures);
+  rpc GetVoltages (Empty) returns (Voltages);
+  rpc GetCurrents (Empty) returns (Currents);
 
   rpc GetVersion (Empty) returns (Version);
+  rpc GetRobotSN (Empty) returns (RobotSN);
   rpc GetState (Empty) returns (State);
   rpc GetCmdnum (Empty) returns (Cmdnum);
   rpc GetServoAngles (Empty) returns (ServoAngles);
@@ -41,7 +46,6 @@ service XAPI {
   rpc GetSimulationRobot (Empty) returns (SimulationRobot);
   rpc SetSimulationRobot (SimulationRobot) returns (SimulationRobot);
 
-
 }
 
 message Empty {
@@ -64,6 +68,11 @@ message InitParam {
   string report_type = 14;
 }
 
+message Mode {
+  int32 status_code = 1;
+  int32 mode = 2;
+}
+
 message CollisionSensitivity{
   int32 status_code = 1;
   int32 collision_sensitivity = 2;
@@ -74,9 +83,47 @@ message TeachSensitivity{
   int32 teach_sensitivity = 2;
 }
 
+message Temperatures {
+  int32 status_code = 1;
+  float servo_1 = 2;
+  float servo_2 = 3;
+  float servo_3 = 4;
+  float servo_4 = 5;
+  float servo_5 = 6;
+  float servo_6 = 7;
+  float servo_7 = 8;
+}
+
+message Voltages {
+  int32 status_code = 1;
+  float servo_1 = 2;
+  float servo_2 = 3;
+  float servo_3 = 4;
+  float servo_4 = 5;
+  float servo_5 = 6;
+  float servo_6 = 7;
+  float servo_7 = 8;
+}
+
+message Currents {
+  int32 status_code = 1;
+  float servo_1 = 2;
+  float servo_2 = 3;
+  float servo_3 = 4;
+  float servo_4 = 5;
+  float servo_5 = 6;
+  float servo_6 = 7;
+  float servo_7 = 8;
+}
+
 message Version {
   int32 status_code = 1;
   string version = 2;
+}
+
+message RobotSN {
+  int32 status_code = 1;
+  string robot_sn = 2;
 }
 
 message State {
@@ -119,11 +166,6 @@ message MotionEnable {
   int32 status_code = 1;
   int32 enable = 2;
   int32 servo_id = 3;
-}
-
-message Mode {
-  int32 status_code = 1;
-  int32 mode = 2;
 }
 
 message MoveCircleMsg {
