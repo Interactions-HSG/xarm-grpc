@@ -30,10 +30,11 @@ service XAPI {
   rpc SetMotionEnable (MotionEnable) returns (MotionEnable);
   rpc SetState (State) returns (State);
   rpc SetMode (Mode) returns (Mode);
+  rpc SetPauseTime (PauseTime) returns (PauseTime);
   rpc SetCollisionSensitivity (CollisionSensitivity) returns (CollisionSensitivity);
   rpc SetTeachSensitivity (TeachSensitivity) returns (TeachSensitivity);
 
-  rpc SetPosition (Position) returns (Position);
+  rpc SetPosition (SetPositionMsg) returns (SetPositionMsg);
   rpc SetServoAngles (ServoAngles) returns (ServoAngles);
   rpc MoveCircle (MoveCircleMsg) returns (MoveCircleMsg);
 
@@ -137,7 +138,6 @@ message Cmdnum {
 }
 
 message Position {
-  // TODO(jo-bru): add oneof to handle polymorphism
   int32 status_code = 1;
   float x = 2;
   float y = 3;
@@ -145,7 +145,6 @@ message Position {
   float roll = 5;
   float pitch = 6;
   float yaw = 7;
-  bool wait = 8;
 }
 
 message ServoAngles {
@@ -168,6 +167,22 @@ message MotionEnable {
   int32 servo_id = 3;
 }
 
+message PauseTime {
+  int32 status_code = 1;
+  float sltime = 2;
+}
+
+message SetPositionMsg {
+  int32 status_code = 1;
+  Position pose = 2;
+  float radius = 3;
+  float speed = 5;
+  float acc = 6;
+  float mvtime = 7;
+  bool wait = 8;
+  float timeout = 9;
+}
+
 message MoveCircleMsg {
   int32 status_code = 1;
   Position pose_1 = 2;
@@ -175,8 +190,9 @@ message MoveCircleMsg {
   float percent = 4;
   float speed = 5;
   float acc = 6;
-  bool wait = 7;
-  float timeout = 8;
+  float mvtime = 7;
+  bool wait = 8;
+  float timeout = 9;
 }
 
 message ResetMsg {

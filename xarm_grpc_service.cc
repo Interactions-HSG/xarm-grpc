@@ -21,12 +21,14 @@ using xapi::Currents;
 using xapi::Empty;
 using xapi::InitParam;
 using xapi::Mode;
+using xapi::PauseTime;
 using xapi::MotionEnable;
 using xapi::MoveCircleMsg;
 using xapi::Position;
 using xapi::ResetMsg;
 using xapi::RobotSN;
 using xapi::ServoAngles;
+using xapi::SetPositionMsg;
 using xapi::SimulationRobot;
 using xapi::State;
 using xapi::TeachSensitivity;
@@ -245,6 +247,15 @@ class XAPIServiceImpl final : public XAPI::Service {
         return Status::OK;
     }
 
+    Status SetPauseTime(ServerContext* context, const PauseTime* pause_time,
+                   PauseTime* pause_time_res) override {
+        int status_code_tmp;
+        status_code_tmp = api->set_pause_time(pause_time->sltime());
+        pause_time_res->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
+
     Status SetCollisionSensitivity(
         ServerContext* context,
         const CollisionSensitivity* collision_sensitivity,
@@ -266,21 +277,36 @@ class XAPIServiceImpl final : public XAPI::Service {
         return Status::OK;
     }
 
-    Status SetPosition(ServerContext* context, const Position* position,
-                       Position* position_res) override {
+    Status SetPosition(ServerContext* context,
+                       const SetPositionMsg* set_position_msg,
+                       SetPositionMsg* set_position_msg_res) override {
         int status_code_tmp;
         fp32 pose[6];
-        pose[0] = position->x();
-        pose[1] = position->y();
-        pose[2] = position->z();
-        pose[3] = position->roll();
-        pose[4] = position->yaw();
-        pose[5] = position->pitch();
-        bool wait = position->wait();
+        pose[0] = set_position_msg->pose().x();
+        pose[1] = set_position_msg->pose().y();
+        pose[2] = set_position_msg->pose().z();
+        pose[3] = set_position_msg->pose().roll();
+        pose[4] = set_position_msg->pose().yaw();
+        pose[5] = set_position_msg->pose().pitch();
 
-        status_code_tmp = api->set_position(pose, wait);
+        fp32 radius =
+            set_position_msg->radius();  // TODO(jo-bru): handle default value
+                                         // => when not set => default: -1 (use
+                                         // optional or singleton oneof)
+        fp32 speed = set_position_msg->speed();
+        fp32 acc = set_position_msg->acc();
+        bool wait = set_position_msg->wait();
+        fp32 timeout =
+            set_position_msg->timeout();  // TODO(jo-bru): handle default value
+                                          // => when not set => default: -1 (use
+                                          // optional or singleton oneof)
 
-        position_res->set_status_code(status_code_tmp);
+        std::cout << "Radius: " << radius << "\n";
+
+        status_code_tmp =
+            api->set_position(pose, radius, speed, acc, 0, wait, timeout);
+
+        set_position_msg_res->set_status_code(status_code_tmp);
         return Status::OK;
     }
 
@@ -329,7 +355,10 @@ class XAPIServiceImpl final : public XAPI::Service {
         fp32 acc = move_circle->acc();
 
         bool wait = move_circle->wait();
-        fp32 timeout = move_circle->timeout();
+        fp32 timeout =
+            move_circle->timeout();  // TODO(jo-bru): handle default value =>
+                                     // when not set => default: -1 (use
+                                     // optional or singleton oneof)
 
         // @param mvtime: 0, reserved
         status_code_tmp = api->move_circle(pose_1, pose_2, percent, speed, acc,

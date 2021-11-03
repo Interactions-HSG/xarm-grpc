@@ -52,6 +52,7 @@ using xapi::Position;
 using xapi::ResetMsg;
 using xapi::RobotSN;
 using xapi::ServoAngles;
+using xapi::SetPositionMsg;
 using xapi::SimulationRobot;
 using xapi::State;
 using xapi::TeachSensitivity;
@@ -59,6 +60,7 @@ using xapi::Temperatures;
 using xapi::Version;
 using xapi::Voltages;
 using xapi::XAPI;
+using xapi::PauseTime;
 
 class XAPIClient {
    public:
@@ -280,6 +282,19 @@ class XAPIClient {
         return mode_res;
     }
 
+    // Set the xArm pause time
+    PauseTime SetPauseTime(const PauseTime &pause_time) {
+        // Context for the client. It could be used to convey extra information
+        // to the server and/or tweak certain RPC behaviors.
+        ClientContext context;
+        // Container for the data we expect from the server.
+        PauseTime pause_time_res;
+
+        Status status = stub_->SetPauseTime(&context, pause_time, &pause_time_res);
+
+        return pause_time_res;
+    }
+
     // Set the xArm collision sensitivity
     CollisionSensitivity SetCollisionSensitivity(
         const CollisionSensitivity &collision_sensitivity) {
@@ -311,16 +326,17 @@ class XAPIClient {
     }
 
     // Set the xArm position
-    Position SetPosition(const Position &position) {
+    SetPositionMsg SetPosition(const SetPositionMsg &set_position_msg) {
         // Context for the client. It could be used to convey extra information
         // to the server and/or tweak certain RPC behaviors.
         ClientContext context;
         // Container for the data we expect from the server.
-        Position position_res;
+        SetPositionMsg set_position_msg_res;
 
-        Status status = stub_->SetPosition(&context, position, &position_res);
+        Status status = stub_->SetPosition(&context, set_position_msg,
+                                           &set_position_msg_res);
 
-        return position_res;
+        return set_position_msg_res;
     }
 
     // Set the xArm servo_angles
@@ -819,6 +835,27 @@ int main(int argc, char **argv) {
     });
 #pragma endregion set_mode
 
+#pragma region set_pause_time
+    // Subcommand: set_pause_time
+    auto *set_pause_time = app.add_subcommand("set_pause_time", "send a set_pause_time command");
+
+    float pause_time_option = 0;
+    set_pause_time->add_option(
+        "-p", pause_time_option,
+        "pause time [s]");
+
+    set_pause_time->callback([&]() {
+        XAPIClient client(
+            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
+                                grpc::InsecureChannelCredentials()));
+        PauseTime pause_time;
+        PauseTime pause_time_res;
+        pause_time.set_sltime(pause_time_option);
+        pause_time_res = client.SetPauseTime(pause_time);  // The actual RPC call!
+        std::cout << "Response code: " << pause_time_res.status_code() << std::endl;
+    });
+#pragma endregion set_pause_time
+
 #pragma region set_collision_sensitivity
     // Subcommand: set_collision_sensitivity
     auto *set_collision_sensitivity =
@@ -886,26 +923,53 @@ int main(int argc, char **argv) {
     float yaw_option = constants::kDefaultPosYaw;
     set_position->add_option("-w, --yaw", yaw_option, "yaw(rad or °)");
 
+    float radius_option = -1;
+    set_position->add_option("--radius", radius_option,
+                             "for arc transitions ( <0: deceleration, 0: "
+                             "continous, >0: arc transition");
+    float speed_option = 0;
+    set_position->add_option(
+        "--speed", speed_option,
+        "move speed (mm/s, rad/s), default(0) is the last_used_tcp_speed");
+    float acc_option = 0;
+    set_position->add_option("--acc", acc_option,
+                             "move acceleration (mm/s^2, rad/s^2), default(0) "
+                             "is the last_used_tcp_acc");
+
     bool wait_option = false;
     set_position->add_option("--wait", wait_option,
                              "whether to wait for the arm to complete");
+    float timeout_option = -1;
+    set_position->add_option(
+        "--timeout", timeout_option,
+        "maximum waiting time(unit: second), -1: no timeout");
 
     set_position->callback([&]() {
         XAPIClient client(
             grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
                                 grpc::InsecureChannelCredentials()));
-        Position position;
-        Position position_res;
-        position.set_x(x_option);
-        position.set_y(y_option);
-        position.set_z(z_option);
-        position.set_roll(roll_option);
-        position.set_pitch(pitch_option);
-        position.set_yaw(yaw_option);
-        position.set_wait(wait_option);
 
-        position_res = client.SetPosition(position);  // The actual RPC call!
-        std::cout << "Response code: " << position_res.status_code()
+        Position *pose = new Position();
+        pose->set_x(x_option);
+        pose->set_y(y_option);
+        pose->set_z(z_option);
+        pose->set_roll(roll_option);
+        pose->set_pitch(pitch_option);
+        pose->set_yaw(yaw_option);
+
+        SetPositionMsg set_position_msg;
+        set_position_msg.set_allocated_pose(pose);
+        set_position_msg.set_radius(radius_option);
+        set_position_msg.set_speed(speed_option);
+        set_position_msg.set_acc(acc_option);
+        set_position_msg.set_wait(wait_option);
+        set_position_msg.set_timeout(timeout_option);
+
+        SetPositionMsg set_position_msg_res;
+
+        set_position_msg_res =
+            client.SetPosition(set_position_msg);  // The actual RPC call!
+        std::cout << "Response code: " << set_position_msg_res.status_code()
                   << std::endl;
     });
 #pragma endregion set_postion
@@ -994,11 +1058,11 @@ int main(int argc, char **argv) {
     move_circle->add_option(
         "--percent", percent_option,
         "the percentage of arc length and circumference of the movement");
-    float speed_option = 0;
+    speed_option = 0;
     move_circle->add_option(
         "--speed", speed_option,
         "move speed (mm/s, rad/s), default(0) is the last_used_tcp_speed");
-    float acc_option = 0;
+    acc_option = 0;
     move_circle->add_option("--acc", acc_option,
                             "move acceleration (mm/s^2, rad/s^2), default(0) "
                             "is the last_used_tcp_acc");
@@ -1006,7 +1070,7 @@ int main(int argc, char **argv) {
     wait_option = false;
     move_circle->add_option("--wait", wait_option,
                             "whether to wait for the arm to complete");
-    float timeout_option = -1;
+    timeout_option = -1;
     move_circle->add_option(
         "--timeout", timeout_option,
         "maximum waiting time(unit: second), -1: no timeout");
@@ -1125,7 +1189,6 @@ int main(int argc, char **argv) {
         position.set_roll(roll_option);
         position.set_pitch(pitch_option);
         position.set_yaw(yaw_option);
-        position.set_wait(wait_option);
 
         ServoAngles servo_angles;
 
