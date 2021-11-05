@@ -16,7 +16,13 @@ service XAPI {
   rpc GetCollisionSensitivity (Empty) returns (CollisionSensitivity);
   rpc GetTeachSensitivity (Empty) returns (TeachSensitivity);
 
+  rpc GetLastUsedTCPSpeed (Empty) returns (TCPSpeed);
+  rpc GetLastUsedTCPAcc (Empty) returns (TCPAcc);
   rpc GetLastUsedAngles (Empty) returns (ServoAngles);
+  rpc GetLastUsedJointSpeed (Empty) returns (JointSpeed);
+  rpc GetLastUsedJointAcc (Empty) returns (JointAcc);
+  rpc GetLastUsedPosition (Empty) returns (Position);
+
 
   rpc GetTemperatures (Empty) returns (Temperatures);
   rpc GetDefaultIsRadian (Empty) returns (DefaultIsRadian);
@@ -147,6 +153,26 @@ message State {
 message Cmdnum {
   int32 status_code = 1;
   int32 cmdnum = 2;
+}
+
+message TCPSpeed {
+  int32 status_code = 1;
+  float tcp_speed = 2;
+}
+
+message TCPAcc {
+  int32 status_code = 1;
+  float tcp_acc = 2;
+}
+
+message JointSpeed {
+  int32 status_code = 1;
+  float joint_speed = 2;
+}
+
+message JointAcc {
+  int32 status_code = 1;
+  float joint_acc = 2;
 }
 
 message Position {

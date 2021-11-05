@@ -21,6 +21,8 @@ using xapi::Currents;
 using xapi::DefaultIsRadian;
 using xapi::Empty;
 using xapi::InitParam;
+using xapi::JointAcc;
+using xapi::JointSpeed;
 using xapi::Mode;
 using xapi::MotionEnable;
 using xapi::MoveCircleMsg;
@@ -34,6 +36,8 @@ using xapi::SetPositionMsg;
 using xapi::SetServoAngleMsg;
 using xapi::SimulationRobot;
 using xapi::State;
+using xapi::TCPAcc;
+using xapi::TCPSpeed;
 using xapi::TeachSensitivity;
 using xapi::Temperatures;
 using xapi::Version;
@@ -86,6 +90,42 @@ class XAPIServiceImpl final : public XAPI::Service {
         return Status::OK;
     }
 
+    Status GetLastUsedTCPSpeed(ServerContext* context, const Empty* empty,
+                               TCPSpeed* tcp_speed) override {
+        int status_code_tmp = 0;  // TODO(jo-bru): status code for properties
+        fp32 tcp_speed_tmp = api->last_used_tcp_speed;
+        tcp_speed->set_tcp_speed(tcp_speed_tmp);
+        tcp_speed->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
+    Status GetLastUsedTCPAcc(ServerContext* context, const Empty* empty,
+                             TCPAcc* tcp_acc) override {
+        int status_code_tmp = 0;  // TODO(jo-bru): status code for properties
+        fp32 tcp_acc_tmp = api->last_used_tcp_acc;
+        tcp_acc->set_tcp_acc(tcp_acc_tmp);
+        tcp_acc->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
+    Status GetLastUsedJointSpeed(ServerContext* context, const Empty* empty,
+                                 JointSpeed* joint_speed) override {
+        int status_code_tmp = 0;  // TODO(jo-bru): status code for properties
+        fp32 joint_speed_tmp = api->last_used_joint_speed;
+        joint_speed->set_joint_speed(joint_speed_tmp);
+        joint_speed->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
+    Status GetLastUsedJointAcc(ServerContext* context, const Empty* empty,
+                               JointAcc* joint_acc) override {
+        int status_code_tmp = 0;  // TODO(jo-bru): status code for properties
+        fp32 joint_acc_tmp = api->last_used_joint_acc;
+        joint_acc->set_joint_acc(joint_acc_tmp);
+        joint_acc->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
     Status GetLastUsedAngles(ServerContext* context, const Empty* empty,
                              ServoAngles* servo_angles) override {
         int status_code_tmp = 0;  // TODO(jo-bru): status code for properties
@@ -99,6 +139,21 @@ class XAPIServiceImpl final : public XAPI::Service {
         servo_angles->set_servo_6(*(angles + 5));
         servo_angles->set_servo_7(*(angles + 6));
         servo_angles->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
+    Status GetLastUsedPosition(ServerContext* context, const Empty* empty,
+                               Position* position) override {
+        int status_code_tmp = 0;  // TODO(jo-bru): status code for properties
+        fp32* pose;
+        pose = api->last_used_position;
+        position->set_x(*(pose));
+        position->set_y(*(pose + 1));
+        position->set_z(*(pose + 2));
+        position->set_roll(*(pose + 3));
+        position->set_pitch(*(pose + 4));
+        position->set_yaw(*(pose + 5));
+        position->set_status_code(status_code_tmp);
         return Status::OK;
     }
 
@@ -249,16 +304,16 @@ class XAPIServiceImpl final : public XAPI::Service {
     }
 
     // ===== Write methods =====
-    
-/* DEACTIVATED! 
-    Status SetDefaultIsRadian(ServerContext* context,
-                              const DefaultIsRadian* default_is_radian,
-                              DefaultIsRadian* default_is_radian_res) override {
-        int status_code_tmp = 0;
-        api->default_is_radian = default_is_radian->default_is_radian();
-        default_is_radian_res->set_status_code(status_code_tmp);
-        return Status::OK;
-    }*/
+
+    /* DEACTIVATED!
+        Status SetDefaultIsRadian(ServerContext* context,
+                                  const DefaultIsRadian* default_is_radian,
+                                  DefaultIsRadian* default_is_radian_res)
+       override { int status_code_tmp = 0; api->default_is_radian =
+       default_is_radian->default_is_radian();
+            default_is_radian_res->set_status_code(status_code_tmp);
+            return Status::OK;
+        }*/
 
     Status SetMotionEnable(ServerContext* context,
                            const MotionEnable* motion_enable,

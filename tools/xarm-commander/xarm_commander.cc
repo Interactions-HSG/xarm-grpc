@@ -46,6 +46,8 @@ using xapi::Currents;
 using xapi::DefaultIsRadian;
 using xapi::Empty;
 using xapi::InitParam;
+using xapi::JointAcc;
+using xapi::JointSpeed;
 using xapi::Mode;
 using xapi::MotionEnable;
 using xapi::MoveCircleMsg;
@@ -59,6 +61,8 @@ using xapi::SetPositionMsg;
 using xapi::SetServoAngleMsg;
 using xapi::SimulationRobot;
 using xapi::State;
+using xapi::TCPAcc;
+using xapi::TCPSpeed;
 using xapi::TeachSensitivity;
 using xapi::Temperatures;
 using xapi::Version;
@@ -136,6 +140,47 @@ class XAPIClient {
         return teach_sensitivity;
     }
 
+    // Get the xArm last used TCP speed
+    TCPSpeed GetLastUsedTCPSpeed() {
+        Empty empty;
+        TCPSpeed tcp_speed;
+        ClientContext context;
+        Status status = stub_->GetLastUsedTCPSpeed(&context, empty, &tcp_speed);
+
+        return tcp_speed;
+    }
+
+    // Get the xArm last used TCP acceleration
+    TCPAcc GetLastUsedTCPAcc() {
+        Empty empty;
+        TCPAcc tcp_acc;
+        ClientContext context;
+        Status status = stub_->GetLastUsedTCPAcc(&context, empty, &tcp_acc);
+
+        return tcp_acc;
+    }
+
+    // Get the xArm last used Joint speed
+    JointSpeed GetLastUsedJointSpeed() {
+        Empty empty;
+        JointSpeed joint_speed;
+        ClientContext context;
+        Status status =
+            stub_->GetLastUsedJointSpeed(&context, empty, &joint_speed);
+
+        return joint_speed;
+    }
+
+    // Get the xArm last used Joint acceleration
+    JointAcc GetLastUsedJointAcc() {
+        Empty empty;
+        JointAcc joint_acc;
+        ClientContext context;
+        Status status = stub_->GetLastUsedJointAcc(&context, empty, &joint_acc);
+
+        return joint_acc;
+    }
+
     // Get the xArm last used servo angles
     ServoAngles GetLastUsedAngles() {
         Empty empty;
@@ -144,6 +189,15 @@ class XAPIClient {
         Status status =
             stub_->GetLastUsedAngles(&context, empty, &servo_angles);
         return servo_angles;
+    }
+
+    // Get the xArm last used tcp position
+    Position GetLastUsedPosition() {
+        Empty empty;
+        Position position;
+        ClientContext context;
+        Status status = stub_->GetLastUsedPosition(&context, empty, &position);
+        return position;
     }
 
     // Get the xArm motor temperatures
@@ -265,21 +319,22 @@ class XAPIClient {
     }
 
     // ===== Write methods =====
-/* DEACTIVATED!
-    // Set the xArm default_is_radian
-    DefaultIsRadian SetDefaultIsRadian(
-        const DefaultIsRadian &default_is_radian) {
-        // Context for the client. It could be used to convey extra information
-        // to the server and/or tweak certain RPC behaviors.
-        ClientContext context;
-        // Container for the data we expect from the server.
-        DefaultIsRadian default_is_radian_res;
+    /* DEACTIVATED!
+        // Set the xArm default_is_radian
+        DefaultIsRadian SetDefaultIsRadian(
+            const DefaultIsRadian &default_is_radian) {
+            // Context for the client. It could be used to convey extra
+       information
+            // to the server and/or tweak certain RPC behaviors.
+            ClientContext context;
+            // Container for the data we expect from the server.
+            DefaultIsRadian default_is_radian_res;
 
-        Status status = stub_->SetDefaultIsRadian(&context, default_is_radian,
-                                                  &default_is_radian_res);
+            Status status = stub_->SetDefaultIsRadian(&context,
+       default_is_radian, &default_is_radian_res);
 
-        return default_is_radian_res;
-    }*/
+            return default_is_radian_res;
+        }*/
 
     // Enable the motion of the xArm (specific joints)
     MotionEnable SetMotionEnable(const MotionEnable &motion_enable) {
@@ -608,6 +663,68 @@ int main(int argc, char **argv) {
     });
 #pragma endregion get_teach_sensitivity
 
+#pragma region get_last_used_tcp_speed
+    // Subcommand: get_last_used_tcp_speed
+    auto *get_last_used_tcp_speed = app.add_subcommand(
+        "get_last_used_tcp_speed", "send a get_last_used_tcp_speed command");
+    get_last_used_tcp_speed->callback([&]() {
+        XAPIClient client(
+            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
+                                grpc::InsecureChannelCredentials()));
+        TCPSpeed tcp_speed;
+        tcp_speed = client.GetLastUsedTCPSpeed();  // The actual RPC call!
+        std::cout << "TCP Speed: " << tcp_speed.tcp_speed() << std::endl;
+        std::cout << "Response code: " << tcp_speed.status_code() << std::endl;
+    });
+#pragma endregion get_last_used_tcp_speed
+
+#pragma region get_last_used_tcp_acc
+    // Subcommand: get_last_used_tcp_acc
+    auto *get_last_used_tcp_acc = app.add_subcommand(
+        "get_last_used_tcp_acc", "send a get_last_used_tcp_acc command");
+    get_last_used_tcp_acc->callback([&]() {
+        XAPIClient client(
+            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
+                                grpc::InsecureChannelCredentials()));
+        TCPAcc tcp_acc;
+        tcp_acc = client.GetLastUsedTCPAcc();  // The actual RPC call!
+        std::cout << "TCP Acc: " << tcp_acc.tcp_acc() << std::endl;
+        std::cout << "Response code: " << tcp_acc.status_code() << std::endl;
+    });
+#pragma endregion get_last_used_tcp_acc
+
+#pragma region get_last_used_joint_speed
+    // Subcommand: get_last_used_joint_speed
+    auto *get_last_used_joint_speed =
+        app.add_subcommand("get_last_used_joint_speed",
+                           "send a get_last_used_joint_speed command");
+    get_last_used_joint_speed->callback([&]() {
+        XAPIClient client(
+            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
+                                grpc::InsecureChannelCredentials()));
+        JointSpeed joint_speed;
+        joint_speed = client.GetLastUsedJointSpeed();  // The actual RPC call!
+        std::cout << "Joint Speed: " << joint_speed.joint_speed() << std::endl;
+        std::cout << "Response code: " << joint_speed.status_code()
+                  << std::endl;
+    });
+#pragma endregion get_last_used_joint_speed
+
+#pragma region get_last_used_joint_acc
+    // Subcommand: get_last_used_joint_acc
+    auto *get_last_used_joint_acc = app.add_subcommand(
+        "get_last_used_joint_acc", "send a get_last_used_joint_acc command");
+    get_last_used_joint_acc->callback([&]() {
+        XAPIClient client(
+            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
+                                grpc::InsecureChannelCredentials()));
+        JointAcc joint_acc;
+        joint_acc = client.GetLastUsedJointAcc();  // The actual RPC call!
+        std::cout << "Joint Acc: " << joint_acc.joint_acc() << std::endl;
+        std::cout << "Response code: " << joint_acc.status_code() << std::endl;
+    });
+#pragma endregion get_last_used_joint_acc
+
 #pragma region get_last_used_angles
     // Subcommand: get_last_used_angles
     auto *get_last_used_angles = app.add_subcommand(
@@ -630,6 +747,27 @@ int main(int argc, char **argv) {
                   << std::endl;
     });
 #pragma endregion get_last_used_angles
+
+#pragma region get_last_used_position
+    // Subcommand: get_last_used_position
+    auto *get_last_used_position = app.add_subcommand(
+        "get_last_used_position", "send a get_last_used_position command");
+    get_last_used_position->callback([&]() {
+        XAPIClient client(
+            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
+                                grpc::InsecureChannelCredentials()));
+        Position position;
+        position = client.GetLastUsedPosition();  // The actual RPC call!
+        std::cout << "Position: \n"
+                  << "    \"x\": " << position.x() << "\n"
+                  << "    \"y\": " << position.y() << "\n"
+                  << "    \"z\": " << position.z() << "\n"
+                  << "    \"roll\": " << position.roll() << "\n"
+                  << "    \"pitch\": " << position.pitch() << "\n"
+                  << "    \"yaw\": " << position.yaw() << std::endl;
+        std::cout << "Response code: " << position.status_code() << std::endl;
+    });
+#pragma endregion get_last_used_position
 
 #pragma region get_temperatures
     // Subcommand: get_temperatures
@@ -838,31 +976,31 @@ int main(int argc, char **argv) {
 #pragma endregion get_position
 
     //----- Write methods -----
-/* DEACTIVATED!
-#pragma region set_default_is_radian
-    // Subcommand: set_default_is_radian
-    auto *set_default_is_radian = app.add_subcommand(
-        "set_default_is_radian", "send a set_default_is_radian command");
+    /* DEACTIVATED!
+    #pragma region set_default_is_radian
+        // Subcommand: set_default_is_radian
+        auto *set_default_is_radian = app.add_subcommand(
+            "set_default_is_radian", "send a set_default_is_radian command");
 
-    bool default_is_radian_option = false;
-    set_default_is_radian->add_option(
-        "-d", default_is_radian_option,
-        "set if the default unit is radians or not");
+        bool default_is_radian_option = false;
+        set_default_is_radian->add_option(
+            "-d", default_is_radian_option,
+            "set if the default unit is radians or not");
 
-    set_default_is_radian->callback([&]() {
-        XAPIClient client(
-            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
-                                grpc::InsecureChannelCredentials()));
-        DefaultIsRadian default_is_radian;
-        DefaultIsRadian default_is_radian_res;
-        default_is_radian.set_default_is_radian(default_is_radian_option);
-        default_is_radian_res = client.SetDefaultIsRadian(
-            default_is_radian);  // The actual RPC call!
-        std::cout << "Response code: " << default_is_radian_res.status_code()
-                  << std::endl;
-    });
-#pragma endregion set_default_is_radian
-*/
+        set_default_is_radian->callback([&]() {
+            XAPIClient client(
+                grpc::CreateChannel(fmt::format("{}:{}", server_ip,
+    server_port), grpc::InsecureChannelCredentials())); DefaultIsRadian
+    default_is_radian; DefaultIsRadian default_is_radian_res;
+            default_is_radian.set_default_is_radian(default_is_radian_option);
+            default_is_radian_res = client.SetDefaultIsRadian(
+                default_is_radian);  // The actual RPC call!
+            std::cout << "Response code: " <<
+    default_is_radian_res.status_code()
+                      << std::endl;
+        });
+    #pragma endregion set_default_is_radian
+    */
 
 #pragma region motion_enable
     // Subcommand: motion_enable
