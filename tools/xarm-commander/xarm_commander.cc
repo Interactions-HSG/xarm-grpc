@@ -16,19 +16,19 @@
 namespace constants {
 // Default values (to avoid magic numbers)
 // default cartesian position
-constexpr float kDefaultPosX = 300;
+constexpr float kDefaultPosX = 206;
 constexpr float kDefaultPosY = 0;
-constexpr float kDefaultPosZ = 200;
+constexpr float kDefaultPosZ = 120.5;
 constexpr float kDefaultPosRoll = 180;  // [Deg] by default
 constexpr float kDefaultPosPitch = 0;   // [Deg] by default
 constexpr float kDefaultPosYaw = 0;     // [Deg] by default
 // default servo angles
-constexpr float kDefaultAng1 = 1.75887;
-constexpr float kDefaultAng2 = -10.804;
-constexpr float kDefaultAng3 = -1.93244;
-constexpr float kDefaultAng4 = 16.7949;
+constexpr float kDefaultAng1 = 0;
+constexpr float kDefaultAng2 = 0;
+constexpr float kDefaultAng3 = 0;
+constexpr float kDefaultAng4 = 0;
 constexpr float kDefaultAng5 = 0;
-constexpr float kDefaultAng6 = 27.5947;
+constexpr float kDefaultAng6 = 0;
 constexpr float kDefaultAng7 = 0;
 
 constexpr int kAllServo = 8;
@@ -43,6 +43,7 @@ using grpc::Status;
 using xapi::Cmdnum;
 using xapi::CollisionSensitivity;
 using xapi::Currents;
+using xapi::DefaultIsRadian;
 using xapi::Empty;
 using xapi::InitParam;
 using xapi::Mode;
@@ -63,7 +64,6 @@ using xapi::Temperatures;
 using xapi::Version;
 using xapi::Voltages;
 using xapi::XAPI;
-using xapi::DefaultIsRadian;
 
 class XAPIClient {
    public:
@@ -141,7 +141,8 @@ class XAPIClient {
         Empty empty;
         ServoAngles servo_angles;
         ClientContext context;
-        Status status = stub_->GetLastUsedAngles(&context, empty, &servo_angles);
+        Status status =
+            stub_->GetLastUsedAngles(&context, empty, &servo_angles);
         return servo_angles;
     }
 
@@ -155,7 +156,7 @@ class XAPIClient {
         return temperatures;
     }
 
-    // Get the xArm default_is_radian 
+    // Get the xArm default_is_radian
     DefaultIsRadian GetDefaultIsRadian() {
         Empty empty;
         DefaultIsRadian default_is_radian;
@@ -264,6 +265,7 @@ class XAPIClient {
     }
 
     // ===== Write methods =====
+/* DEACTIVATED!
     // Set the xArm default_is_radian
     DefaultIsRadian SetDefaultIsRadian(
         const DefaultIsRadian &default_is_radian) {
@@ -274,10 +276,10 @@ class XAPIClient {
         DefaultIsRadian default_is_radian_res;
 
         Status status = stub_->SetDefaultIsRadian(&context, default_is_radian,
-                                                   &default_is_radian_res);
+                                                  &default_is_radian_res);
 
         return default_is_radian_res;
-    }
+    }*/
 
     // Enable the motion of the xArm (specific joints)
     MotionEnable SetMotionEnable(const MotionEnable &motion_enable) {
@@ -629,7 +631,6 @@ int main(int argc, char **argv) {
     });
 #pragma endregion get_last_used_angles
 
-
 #pragma region get_temperatures
     // Subcommand: get_temperatures
     auto *get_temperatures = app.add_subcommand(
@@ -837,14 +838,16 @@ int main(int argc, char **argv) {
 #pragma endregion get_position
 
     //----- Write methods -----
+/* DEACTIVATED!
 #pragma region set_default_is_radian
     // Subcommand: set_default_is_radian
     auto *set_default_is_radian = app.add_subcommand(
         "set_default_is_radian", "send a set_default_is_radian command");
 
     bool default_is_radian_option = false;
-    set_default_is_radian->add_option("-d", default_is_radian_option,
-                                      "set if the default unit is radians or not");
+    set_default_is_radian->add_option(
+        "-d", default_is_radian_option,
+        "set if the default unit is radians or not");
 
     set_default_is_radian->callback([&]() {
         XAPIClient client(
@@ -859,6 +862,7 @@ int main(int argc, char **argv) {
                   << std::endl;
     });
 #pragma endregion set_default_is_radian
+*/
 
 #pragma region motion_enable
     // Subcommand: motion_enable

@@ -249,6 +249,8 @@ class XAPIServiceImpl final : public XAPI::Service {
     }
 
     // ===== Write methods =====
+    
+/* DEACTIVATED! 
     Status SetDefaultIsRadian(ServerContext* context,
                               const DefaultIsRadian* default_is_radian,
                               DefaultIsRadian* default_is_radian_res) override {
@@ -256,7 +258,7 @@ class XAPIServiceImpl final : public XAPI::Service {
         api->default_is_radian = default_is_radian->default_is_radian();
         default_is_radian_res->set_status_code(status_code_tmp);
         return Status::OK;
-    }
+    }*/
 
     Status SetMotionEnable(ServerContext* context,
                            const MotionEnable* motion_enable,
@@ -363,8 +365,6 @@ class XAPIServiceImpl final : public XAPI::Service {
 
         // oneof: single angle or all angles
         if (set_servo_angle_msg->has_servo_angle()) {
-            std::cout << "Singe angle.."
-                      << "\n";
             int servo_id = set_servo_angle_msg->servo_angle().servo_id();
             fp32 angle = set_servo_angle_msg->servo_angle().angle();
 

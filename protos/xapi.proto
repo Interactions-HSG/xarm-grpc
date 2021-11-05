@@ -32,8 +32,7 @@ service XAPI {
   rpc GetPosition (Empty) returns (Position);
 
   // Write services
-  rpc SetDefaultIsRadian (DefaultIsRadian) returns (DefaultIsRadian);
-
+  //  rpc SetDefaultIsRadian (DefaultIsRadian) returns (DefaultIsRadian); // DEACTIVATED!
 
   rpc SetMotionEnable (MotionEnable) returns (MotionEnable);
   rpc SetState (State) returns (State);
