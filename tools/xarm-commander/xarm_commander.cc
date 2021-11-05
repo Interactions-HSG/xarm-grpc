@@ -63,6 +63,7 @@ using xapi::Temperatures;
 using xapi::Version;
 using xapi::Voltages;
 using xapi::XAPI;
+using xapi::DefaultIsRadian;
 
 class XAPIClient {
    public:
@@ -135,6 +136,15 @@ class XAPIClient {
         return teach_sensitivity;
     }
 
+    // Get the xArm last used servo angles
+    ServoAngles GetLastUsedAngles() {
+        Empty empty;
+        ServoAngles servo_angles;
+        ClientContext context;
+        Status status = stub_->GetLastUsedAngles(&context, empty, &servo_angles);
+        return servo_angles;
+    }
+
     // Get the xArm motor temperatures
     Temperatures GetTemperatures() {
         Empty empty;
@@ -143,6 +153,17 @@ class XAPIClient {
         Status status = stub_->GetTemperatures(&context, empty, &temperatures);
 
         return temperatures;
+    }
+
+    // Get the xArm default_is_radian 
+    DefaultIsRadian GetDefaultIsRadian() {
+        Empty empty;
+        DefaultIsRadian default_is_radian;
+        ClientContext context;
+        Status status =
+            stub_->GetDefaultIsRadian(&context, empty, &default_is_radian);
+
+        return default_is_radian;
     }
 
     // Get the xArm motor voltages
@@ -243,6 +264,20 @@ class XAPIClient {
     }
 
     // ===== Write methods =====
+    // Set the xArm default_is_radian
+    DefaultIsRadian SetDefaultIsRadian(
+        const DefaultIsRadian &default_is_radian) {
+        // Context for the client. It could be used to convey extra information
+        // to the server and/or tweak certain RPC behaviors.
+        ClientContext context;
+        // Container for the data we expect from the server.
+        DefaultIsRadian default_is_radian_res;
+
+        Status status = stub_->SetDefaultIsRadian(&context, default_is_radian,
+                                                   &default_is_radian_res);
+
+        return default_is_radian_res;
+    }
 
     // Enable the motion of the xArm (specific joints)
     MotionEnable SetMotionEnable(const MotionEnable &motion_enable) {
@@ -571,6 +606,30 @@ int main(int argc, char **argv) {
     });
 #pragma endregion get_teach_sensitivity
 
+#pragma region get_last_used_angles
+    // Subcommand: get_last_used_angles
+    auto *get_last_used_angles = app.add_subcommand(
+        "get_last_used_angles", "send a get_last_used_angles command");
+    get_last_used_angles->callback([&]() {
+        XAPIClient client(
+            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
+                                grpc::InsecureChannelCredentials()));
+        ServoAngles servo_angles;
+        servo_angles = client.GetLastUsedAngles();  // The actual RPC call!
+        std::cout << "ServoAngles: \n"
+                  << "    \"servo_1\": " << servo_angles.servo_1() << "\n"
+                  << "    \"servo_2\": " << servo_angles.servo_2() << "\n"
+                  << "    \"servo_3\": " << servo_angles.servo_3() << "\n"
+                  << "    \"servo_4\": " << servo_angles.servo_4() << "\n"
+                  << "    \"servo_5\": " << servo_angles.servo_5() << "\n"
+                  << "    \"servo_6\": " << servo_angles.servo_6() << "\n"
+                  << "    \"servo_7\": " << servo_angles.servo_7() << std::endl;
+        std::cout << "Response code: " << servo_angles.status_code()
+                  << std::endl;
+    });
+#pragma endregion get_last_used_angles
+
+
 #pragma region get_temperatures
     // Subcommand: get_temperatures
     auto *get_temperatures = app.add_subcommand(
@@ -593,6 +652,24 @@ int main(int argc, char **argv) {
                   << std::endl;
     });
 #pragma endregion get_temperatures
+
+#pragma region get_default_is_radian
+    // Subcommand: get_default_is_radian
+    auto *get_default_is_radian = app.add_subcommand(
+        "get_default_is_radian", "send a get_default_is_radian command");
+    get_default_is_radian->callback([&]() {
+        XAPIClient client(
+            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
+                                grpc::InsecureChannelCredentials()));
+        DefaultIsRadian default_is_radian;
+        default_is_radian =
+            client.GetDefaultIsRadian();  // The actual RPC call!
+        std::cout << "Default is Radian: "
+                  << default_is_radian.default_is_radian() << std::endl;
+        std::cout << "Response code: " << default_is_radian.status_code()
+                  << std::endl;
+    });
+#pragma endregion get_default_is_radian
 
 #pragma region get_voltages
     // Subcommand: get_voltages
@@ -760,6 +837,29 @@ int main(int argc, char **argv) {
 #pragma endregion get_position
 
     //----- Write methods -----
+#pragma region set_default_is_radian
+    // Subcommand: set_default_is_radian
+    auto *set_default_is_radian = app.add_subcommand(
+        "set_default_is_radian", "send a set_default_is_radian command");
+
+    bool default_is_radian_option = false;
+    set_default_is_radian->add_option("-d", default_is_radian_option,
+                                      "set if the default unit is radians or not");
+
+    set_default_is_radian->callback([&]() {
+        XAPIClient client(
+            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
+                                grpc::InsecureChannelCredentials()));
+        DefaultIsRadian default_is_radian;
+        DefaultIsRadian default_is_radian_res;
+        default_is_radian.set_default_is_radian(default_is_radian_option);
+        default_is_radian_res = client.SetDefaultIsRadian(
+            default_is_radian);  // The actual RPC call!
+        std::cout << "Response code: " << default_is_radian_res.status_code()
+                  << std::endl;
+    });
+#pragma endregion set_default_is_radian
+
 #pragma region motion_enable
     // Subcommand: motion_enable
     auto *motion_enable =

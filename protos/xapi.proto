@@ -15,7 +15,12 @@ service XAPI {
   rpc GetMode (Empty) returns (Mode);
   rpc GetCollisionSensitivity (Empty) returns (CollisionSensitivity);
   rpc GetTeachSensitivity (Empty) returns (TeachSensitivity);
+
+  rpc GetLastUsedAngles (Empty) returns (ServoAngles);
+
   rpc GetTemperatures (Empty) returns (Temperatures);
+  rpc GetDefaultIsRadian (Empty) returns (DefaultIsRadian);
+
   rpc GetVoltages (Empty) returns (Voltages);
   rpc GetCurrents (Empty) returns (Currents);
 
@@ -27,6 +32,9 @@ service XAPI {
   rpc GetPosition (Empty) returns (Position);
 
   // Write services
+  rpc SetDefaultIsRadian (DefaultIsRadian) returns (DefaultIsRadian);
+
+
   rpc SetMotionEnable (MotionEnable) returns (MotionEnable);
   rpc SetState (State) returns (State);
   rpc SetMode (Mode) returns (Mode);
@@ -93,6 +101,11 @@ message Temperatures {
   float servo_5 = 6;
   float servo_6 = 7;
   float servo_7 = 8;
+}
+
+message DefaultIsRadian {
+  int32 status_code = 1;
+  bool default_is_radian = 2;
 }
 
 message Voltages {

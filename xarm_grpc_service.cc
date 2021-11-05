@@ -18,6 +18,7 @@ using grpc::Status;
 using xapi::Cmdnum;
 using xapi::CollisionSensitivity;
 using xapi::Currents;
+using xapi::DefaultIsRadian;
 using xapi::Empty;
 using xapi::InitParam;
 using xapi::Mode;
@@ -85,6 +86,22 @@ class XAPIServiceImpl final : public XAPI::Service {
         return Status::OK;
     }
 
+    Status GetLastUsedAngles(ServerContext* context, const Empty* empty,
+                             ServoAngles* servo_angles) override {
+        int status_code_tmp = 0;  // TODO(jo-bru): status code for properties
+        fp32* angles;
+        angles = api->last_used_angles;
+        servo_angles->set_servo_1(*(angles));
+        servo_angles->set_servo_2(*(angles + 1));
+        servo_angles->set_servo_3(*(angles + 2));
+        servo_angles->set_servo_4(*(angles + 3));
+        servo_angles->set_servo_5(*(angles + 4));
+        servo_angles->set_servo_6(*(angles + 5));
+        servo_angles->set_servo_7(*(angles + 6));
+        servo_angles->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
     Status GetTemperatures(ServerContext* context, const Empty* empty,
                            Temperatures* temperatures) override {
         int status_code_tmp = 0;  // TODO(jo-bru): status code for properties
@@ -98,6 +115,15 @@ class XAPIServiceImpl final : public XAPI::Service {
         temperatures->set_servo_6(*(temp + 5));
         temperatures->set_servo_7(*(temp + 6));
         temperatures->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
+    Status GetDefaultIsRadian(ServerContext* context, const Empty* empty,
+                              DefaultIsRadian* default_is_radian) override {
+        int status_code_tmp = 0;
+        bool default_is_radian_tmp = api->default_is_radian;
+        default_is_radian->set_default_is_radian(default_is_radian_tmp);
+        default_is_radian->set_status_code(status_code_tmp);
         return Status::OK;
     }
 
@@ -223,6 +249,15 @@ class XAPIServiceImpl final : public XAPI::Service {
     }
 
     // ===== Write methods =====
+    Status SetDefaultIsRadian(ServerContext* context,
+                              const DefaultIsRadian* default_is_radian,
+                              DefaultIsRadian* default_is_radian_res) override {
+        int status_code_tmp = 0;
+        api->default_is_radian = default_is_radian->default_is_radian();
+        default_is_radian_res->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
     Status SetMotionEnable(ServerContext* context,
                            const MotionEnable* motion_enable,
                            MotionEnable* motion_enable_res) override {
