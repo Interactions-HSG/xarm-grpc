@@ -47,6 +47,7 @@ service XAPI {
   rpc SetCollisionSensitivity (CollisionSensitivity) returns (CollisionSensitivity);
   rpc SetTeachSensitivity (TeachSensitivity) returns (TeachSensitivity);
 
+  // Motion Services
   rpc SetPosition (SetPositionMsg) returns (SetPositionMsg);
   rpc SetServoAngle (SetServoAngleMsg) returns (SetServoAngleMsg);
   rpc MoveCircle (MoveCircleMsg) returns (MoveCircleMsg);
@@ -54,9 +55,22 @@ service XAPI {
   rpc Reset (ResetMsg) returns (Empty);
   rpc EmergencyStop (Empty) returns (Empty);
 
+  // Kinematics
   rpc GetInverseKinematics (Position) returns (ServoAngles);
   rpc GetForwardKinematics (ServoAngles) returns (Position);
 
+  // Reduced Mode
+  rpc SetReducedMode (ReducedMode) returns (ReducedMode);
+  rpc SetReducedMaxTCPSpeed (TCPSpeed) returns (TCPSpeed);
+  rpc SetReducedMaxJointSpeed (JointSpeed) returns (JointSpeed);
+  rpc GetReducedMode (Empty) returns (ReducedMode);
+  rpc GetReducedStates (Empty) returns (ReducedStates);
+  rpc SetReducedTCPBoundary (TCPBoundary) returns (TCPBoundary);
+  //rpc SetReducedJointRange (JointRange) returns (JointRange); //TODO
+
+  rpc SetFenceMode (FenceMode) returns (FenceMode); // TODO: how to getFenceMode ?
+
+  // Simulation Robot
   rpc GetSimulationRobot (Empty) returns (SimulationRobot);
   rpc SetSimulationRobot (SimulationRobot) returns (SimulationRobot);
 
@@ -254,6 +268,37 @@ message ResetMsg {
   int32 status_code = 1;
   bool wait = 2;
   float timeout = 3;
+}
+
+message ReducedMode {
+  int32 status_code = 1;
+  bool on = 2;
+}
+
+message ReducedStates {
+  int32 status_code = 1;
+  bool on = 2;
+  TCPBoundary xyz_list= 3;
+  TCPSpeed tcp_speed= 4;
+  JointSpeed joint_speed = 5;
+  //JRange jrange = 6; // TODO
+  //bool fense_is_on = 7; //TODO
+  //collision_rebount_is_on = 8; // TODO 
+}
+
+message TCPBoundary {
+  int32 status_code = 1;
+  int32 x_max = 2;
+  int32 x_min = 3;
+  int32 y_max = 4;
+  int32 y_min = 5;
+  int32 z_max = 6;
+  int32 z_min = 7;
+}
+
+message FenceMode {
+  int32 status_code = 1;
+  bool on = 2;
 }
 
 message SimulationRobot{

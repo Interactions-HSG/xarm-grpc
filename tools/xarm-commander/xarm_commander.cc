@@ -45,6 +45,7 @@ using xapi::CollisionSensitivity;
 using xapi::Currents;
 using xapi::DefaultIsRadian;
 using xapi::Empty;
+using xapi::FenceMode;
 using xapi::InitParam;
 using xapi::JointAcc;
 using xapi::JointSpeed;
@@ -53,6 +54,8 @@ using xapi::MotionEnable;
 using xapi::MoveCircleMsg;
 using xapi::PauseTime;
 using xapi::Position;
+using xapi::ReducedMode;
+using xapi::ReducedStates;
 using xapi::ResetMsg;
 using xapi::RobotSN;
 using xapi::ServoAngle;
@@ -62,6 +65,7 @@ using xapi::SetServoAngleMsg;
 using xapi::SimulationRobot;
 using xapi::State;
 using xapi::TCPAcc;
+using xapi::TCPBoundary;
 using xapi::TCPSpeed;
 using xapi::TeachSensitivity;
 using xapi::Temperatures;
@@ -516,6 +520,95 @@ class XAPIClient {
             stub_->GetForwardKinematics(&context, servo_angles, &position_res);
 
         return position_res;
+    }
+
+    // Turn on/off reduced mode
+    ReducedMode SetReducedMode(const ReducedMode &reduced_mode) {
+        // Context for the client. It could be used to convey extra information
+        // to the server and/or tweak certain RPC behaviors.
+        ClientContext context;
+        // Container for the data we expect from the server.
+        ReducedMode reduced_mode_res;
+
+        Status status =
+            stub_->SetReducedMode(&context, reduced_mode, &reduced_mode_res);
+
+        return reduced_mode_res;
+    }
+
+    // Set the maximum tcp speed of the reduced mode
+    TCPSpeed SetReducedMaxTCPSpeed(const TCPSpeed &tcp_speed) {
+        // Context for the client. It could be used to convey extra information
+        // to the server and/or tweak certain RPC behaviors.
+        ClientContext context;
+        // Container for the data we expect from the server.
+        TCPSpeed tcp_speed_res;
+
+        Status status =
+            stub_->SetReducedMaxTCPSpeed(&context, tcp_speed, &tcp_speed_res);
+
+        return tcp_speed_res;
+    }
+
+    // Set the maximum joint speed of the reduced mode
+    JointSpeed SetReducedMaxJointSpeed(const JointSpeed &joint_speed) {
+        // Context for the client. It could be used to convey extra information
+        // to the server and/or tweak certain RPC behaviors.
+        ClientContext context;
+        // Container for the data we expect from the server.
+        JointSpeed joint_speed_res;
+
+        Status status = stub_->SetReducedMaxJointSpeed(&context, joint_speed,
+                                                       &joint_speed_res);
+
+        return joint_speed_res;
+    }
+
+    // Get the reduced mode
+    ReducedMode GetReducedMode() {
+        Empty empty;
+        ReducedMode reduced_mode;
+        ClientContext context;
+        Status status = stub_->GetReducedMode(&context, empty, &reduced_mode);
+        return reduced_mode;
+    }
+
+    // Get states of the reduced mode
+    ReducedStates GetReducedStates() {
+        Empty empty;
+        ReducedStates reduced_states;
+        ClientContext context;
+        Status status =
+            stub_->GetReducedStates(&context, empty, &reduced_states);
+        return reduced_states;
+    }
+
+    // Set the boundary of the safety boundary mode
+    TCPBoundary SetReducedTCPBoundary(const TCPBoundary &tcp_boundary) {
+        // Context for the client. It could be used to convey extra information
+        // to the server and/or tweak certain RPC behaviors.
+        ClientContext context;
+        // Container for the data we expect from the server.
+        TCPBoundary tcp_boundary_res;
+
+        Status status = stub_->SetReducedTCPBoundary(&context, tcp_boundary,
+                                                     &tcp_boundary_res);
+
+        return tcp_boundary_res;
+    }
+
+    // Turn on/off safety mode
+    FenceMode SetFenceMode(const FenceMode &fence_mode) {
+        // Context for the client. It could be used to convey extra information
+        // to the server and/or tweak certain RPC behaviors.
+        ClientContext context;
+        // Container for the data we expect from the server.
+        FenceMode fence_mode_res;
+
+        Status status =
+            stub_->SetFenceMode(&context, fence_mode, &fence_mode_res);
+
+        return fence_mode_res;
     }
 
     // Set the simulation robot
@@ -1151,7 +1244,7 @@ int main(int argc, char **argv) {
     });
 #pragma endregion set_teach_sensitivity
 
-#pragma region set_postion
+#pragma region set_position
     // Subcommand: set_position
     auto *set_position = app.add_subcommand(
         "set_position",
@@ -1219,7 +1312,7 @@ int main(int argc, char **argv) {
         std::cout << "Response code: " << set_position_msg_res.status_code()
                   << std::endl;
     });
-#pragma endregion set_postion
+#pragma endregion set_position
 
 #pragma region set_servo_angle
     // Subcommand: set_servo_angle
@@ -1560,12 +1653,192 @@ int main(int argc, char **argv) {
     });
 #pragma endregion get_forward_kinematics
 
+#pragma region set_reduced_mode
+    // Subcommand: set_reduced_mode
+    auto *set_reduced_mode = app.add_subcommand(
+        "set_reduced_mode", "send a set_reduced_mode command");
+
+    bool on_option = true;
+    set_reduced_mode->add_option("-o, --on", on_option,
+                                 "on: enable(true) or not(false)");
+
+    set_reduced_mode->callback([&]() {
+        XAPIClient client(
+            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
+                                grpc::InsecureChannelCredentials()));
+        ReducedMode reduced_mode;
+        ReducedMode reduced_mode_res;
+        reduced_mode.set_on(on_option);
+        reduced_mode_res =
+            client.SetReducedMode(reduced_mode);  // The actual RPC call!
+        std::cout << "Response code: " << reduced_mode_res.status_code()
+                  << std::endl;
+    });
+#pragma endregion set_reduced_mode
+
+#pragma region set_reduced_max_tcp_speed
+    // Subcommand: set_reduced_max_tcp_speed
+    auto *set_reduced_max_tcp_speed =
+        app.add_subcommand("set_reduced_max_tcp_speed",
+                           "send a set_reduced_max_tcp_speed command");
+
+    float tcp_speed_option = 1000;
+    set_reduced_max_tcp_speed->add_option("-s, --speed", tcp_speed_option,
+                                          "the maximum tcp speed 1~1000mm/s");
+
+    set_reduced_max_tcp_speed->callback([&]() {
+        XAPIClient client(
+            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
+                                grpc::InsecureChannelCredentials()));
+        TCPSpeed tcp_speed;
+        TCPSpeed tcp_speed_res;
+        tcp_speed.set_tcp_speed(tcp_speed_option);
+        tcp_speed_res =
+            client.SetReducedMaxTCPSpeed(tcp_speed);  // The actual RPC call!
+        std::cout << "Response code: " << tcp_speed_res.status_code()
+                  << std::endl;
+    });
+#pragma endregion set_reduced_max_tcp_speed
+
+#pragma region set_reduced_max_joint_speed
+    // Subcommand: set_reduced_max_joint_speed
+    auto *set_reduced_max_joint_speed =
+        app.add_subcommand("set_reduced_max_joint_speed",
+                           "send a set_reduced_max_joint_speed command");
+
+    float joint_speed_option = 6;
+    set_reduced_max_joint_speed->add_option(
+        "-s, --speed", joint_speed_option,
+        "the maximum joint speed 6~180°/s");  // TODO:(jo-bru): what about case:
+                                              // default_is_radian = true
+
+    set_reduced_max_joint_speed->callback([&]() {
+        XAPIClient client(
+            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
+                                grpc::InsecureChannelCredentials()));
+        JointSpeed joint_speed;
+        JointSpeed joint_speed_res;
+        joint_speed.set_joint_speed(joint_speed_option);
+        joint_speed_res = client.SetReducedMaxJointSpeed(
+            joint_speed);  // The actual RPC call!
+        std::cout << "Response code: " << joint_speed_res.status_code()
+                  << std::endl;
+    });
+#pragma endregion set_reduced_max_joint_speed
+
+#pragma region get_reduced_mode
+    // Subcommand: get_reduced_mode
+    auto *get_reduced_mode = app.add_subcommand(
+        "get_reduced_mode", "send a get_reduced_mode command");
+    get_reduced_mode->callback([&]() {
+        XAPIClient client(
+            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
+                                grpc::InsecureChannelCredentials()));
+        ReducedMode reduced_mode;
+        reduced_mode = client.GetReducedMode();  // The actual RPC call!
+        std::cout << "Reduced Mode on: " << reduced_mode.on() << std::endl;
+        std::cout << "Response code: " << reduced_mode.status_code()
+                  << std::endl;
+    });
+#pragma endregion get_reduced_mode
+
+#pragma region get_reduced_states
+    // Subcommand: get_reduced_states
+    auto *get_reduced_states = app.add_subcommand(
+        "get_reduced_states", "send a get_reduced_states command");
+    get_reduced_states->callback([&]() {
+        XAPIClient client(
+            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
+                                grpc::InsecureChannelCredentials()));
+        ReducedStates reduced_states;
+        reduced_states = client.GetReducedStates();  // The actual RPC call!
+        std::cout << "Reduced States: \n"
+                  << "  Reduced Mode on: " << reduced_states.on() << "\n"
+                  << "  TCP Boundary:\n"
+                  << "    x_max: " << reduced_states.xyz_list().x_max() << "\n"
+                  << "    x_min: " << reduced_states.xyz_list().x_min() << "\n"
+                  << "    y_max: " << reduced_states.xyz_list().y_max() << "\n"
+                  << "    y_min: " << reduced_states.xyz_list().y_min() << "\n"
+                  << "    z_max: " << reduced_states.xyz_list().z_max() << "\n"
+                  << "    z_min: " << reduced_states.xyz_list().z_min() << "\n"
+                  << "  Max TCP speed: "
+                  << reduced_states.tcp_speed().tcp_speed() << "\n"
+                  << "  Max Joint speed: "
+                  << reduced_states.joint_speed().joint_speed() << std::endl;
+        std::cout << "Response code: " << reduced_states.status_code()
+                  << std::endl;
+    });
+#pragma endregion get_reduced_states
+
+#pragma region set_reduced_tcp_boundary
+    // Subcommand: set_reduced_tcp_boundary
+    auto *set_reduced_tcp_boundary = app.add_subcommand(
+        "set_reduced_tcp_boundary", "send a set_reduced_tcp_boundary command");
+
+    int x_max_option = 3000;
+    set_reduced_tcp_boundary->add_option("--x-max", x_max_option, "x_max(mm)");
+    int x_min_option = -3000;
+    set_reduced_tcp_boundary->add_option("--x-min", x_min_option, "x_min(mm)");
+    int y_max_option = 3000;
+    set_reduced_tcp_boundary->add_option("--y-max", y_max_option, "y_max(mm)");
+    int y_min_option = -3000;
+    set_reduced_tcp_boundary->add_option("--y-min", y_min_option, "y_min(mm)");
+    int z_max_option = 3000;
+    set_reduced_tcp_boundary->add_option("--z-max", z_max_option, "z_max(mm)");
+    int z_min_option = -3000;
+    set_reduced_tcp_boundary->add_option("--z-min", z_min_option, "z_min(mm)");
+
+    set_reduced_tcp_boundary->callback([&]() {
+        XAPIClient client(
+            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
+                                grpc::InsecureChannelCredentials()));
+
+        TCPBoundary tcp_boundary;
+        tcp_boundary.set_x_max(x_max_option);
+        tcp_boundary.set_x_min(x_min_option);
+        tcp_boundary.set_y_max(y_max_option);
+        tcp_boundary.set_y_min(y_min_option);
+        tcp_boundary.set_z_max(z_max_option);
+        tcp_boundary.set_z_min(z_min_option);
+
+        TCPBoundary tcp_boundary_res;
+
+        tcp_boundary_res =
+            client.SetReducedTCPBoundary(tcp_boundary);  // The actual RPC call!
+        std::cout << "Response code: " << tcp_boundary_res.status_code()
+                  << std::endl;
+    });
+#pragma endregion set_reduced_tcp_boundary
+
+#pragma region set_fence_mode
+    // Subcommand: set_fence_mode
+    auto *set_fence_mode =
+        app.add_subcommand("set_fence_mode", "send a set_fence_mode command");
+
+    on_option = true;
+    set_fence_mode->add_option("-o, --on", on_option,
+                               "on: enable(true) or not(false)");
+
+    set_fence_mode->callback([&]() {
+        XAPIClient client(
+            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
+                                grpc::InsecureChannelCredentials()));
+        FenceMode fence_mode;
+        FenceMode fence_mode_res;
+        fence_mode.set_on(on_option);
+        fence_mode_res =
+            client.SetFenceMode(fence_mode);  // The actual RPC call!
+        std::cout << "Response code: " << fence_mode_res.status_code()
+                  << std::endl;
+    });
+#pragma endregion set_fence_mode
+
 #pragma region set_simulation_robot
     // Subcommand: set_simulation_robot
     auto *set_simulation_robot = app.add_subcommand(
         "set_simulation_robot", "send a set_simulation_robot command");
 
-    bool on_option = true;
+    on_option = true;
     set_simulation_robot->add_option("-o, --on", on_option,
                                      "on: enable(true) or not(false)");
 

@@ -20,6 +20,7 @@ using xapi::CollisionSensitivity;
 using xapi::Currents;
 using xapi::DefaultIsRadian;
 using xapi::Empty;
+using xapi::FenceMode;
 using xapi::InitParam;
 using xapi::JointAcc;
 using xapi::JointSpeed;
@@ -28,6 +29,8 @@ using xapi::MotionEnable;
 using xapi::MoveCircleMsg;
 using xapi::PauseTime;
 using xapi::Position;
+using xapi::ReducedMode;
+using xapi::ReducedStates;
 using xapi::ResetMsg;
 using xapi::RobotSN;
 using xapi::ServoAngle;
@@ -37,6 +40,7 @@ using xapi::SetServoAngleMsg;
 using xapi::SimulationRobot;
 using xapi::State;
 using xapi::TCPAcc;
+using xapi::TCPBoundary;
 using xapi::TCPSpeed;
 using xapi::TeachSensitivity;
 using xapi::Temperatures;
@@ -542,6 +546,102 @@ class XAPIServiceImpl final : public XAPI::Service {
         position->set_pitch(pose[4]);
         position->set_yaw(pose[5]);
         position->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
+    Status SetReducedMode(ServerContext* context,
+                          const ReducedMode* reduced_mode,
+                          ReducedMode* reduced_mode_res) override {
+        int status_code_tmp;
+        status_code_tmp = api->set_reduced_mode(reduced_mode->on());
+        reduced_mode_res->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
+    Status SetReducedMaxTCPSpeed(ServerContext* context,
+                                 const TCPSpeed* tcp_speed,
+                                 TCPSpeed* tcp_speed_res) override {
+        int status_code_tmp;
+        status_code_tmp =
+            api->set_reduced_max_tcp_speed(tcp_speed->tcp_speed());
+        tcp_speed_res->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
+    Status SetReducedMaxJointSpeed(ServerContext* context,
+                                   const JointSpeed* joint_speed,
+                                   JointSpeed* joint_speed_res) override {
+        int status_code_tmp;
+        status_code_tmp =
+            api->set_reduced_max_joint_speed(joint_speed->joint_speed());
+        joint_speed_res->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
+    Status GetReducedMode(ServerContext* context, const Empty* empty,
+                          ReducedMode* reduced_mode) override {
+        int* reduced_mode_tmp;
+        int status_code_tmp = api->get_reduced_mode(reduced_mode_tmp);
+        reduced_mode->set_on((*reduced_mode_tmp == 1));
+        reduced_mode->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
+    Status GetReducedStates(ServerContext* context, const Empty* empty,
+                            ReducedStates* reduced_states) override {
+        int status_code_tmp;
+        int* on = new int;
+        int* xyz_list_tmp = new int[6];
+        float* tcp_speed_tmp = new float;
+        float* joint_speed_tmp = new float;
+        status_code_tmp = api->get_reduced_states(
+            on, xyz_list_tmp, tcp_speed_tmp, joint_speed_tmp);
+
+        TCPBoundary* xyz_list = new TCPBoundary();
+        xyz_list->set_x_max(*(xyz_list_tmp));
+        xyz_list->set_x_min(*(xyz_list_tmp + 1));
+        xyz_list->set_y_max(*(xyz_list_tmp + 2));
+        xyz_list->set_y_min(*(xyz_list_tmp + 3));
+        xyz_list->set_z_max(*(xyz_list_tmp + 4));
+        xyz_list->set_z_min(*(xyz_list_tmp + 5));
+
+        TCPSpeed* tcp_speed = new TCPSpeed();
+        tcp_speed->set_tcp_speed(*tcp_speed_tmp);
+
+        JointSpeed* joint_speed = new JointSpeed();
+        joint_speed->set_joint_speed(*joint_speed_tmp);
+
+        reduced_states->set_on((*on == 1));
+        reduced_states->set_allocated_xyz_list(xyz_list);
+        reduced_states->set_allocated_tcp_speed(tcp_speed);
+        reduced_states->set_allocated_joint_speed(joint_speed);
+        reduced_states->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
+    Status SetReducedTCPBoundary(ServerContext* context,
+                                 const TCPBoundary* tcp_boundary,
+                                 TCPBoundary* tcp_boundary_res) override {
+        int status_code_tmp;
+        int bound[6];
+        bound[0] = tcp_boundary->x_max();
+        bound[1] = tcp_boundary->x_min();
+        bound[2] = tcp_boundary->y_max();
+        bound[3] = tcp_boundary->y_min();
+        bound[4] = tcp_boundary->z_max();
+        bound[5] = tcp_boundary->z_min();
+
+        status_code_tmp = api->set_reduced_tcp_boundary(bound);
+
+        tcp_boundary_res->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
+    Status SetFenceMode(ServerContext* context, const FenceMode* fence_mode,
+                        FenceMode* fence_mode_res) override {
+        int status_code_tmp;
+        status_code_tmp = api->set_fence_mode(fence_mode->on());
+        fence_mode_res->set_status_code(status_code_tmp);
         return Status::OK;
     }
 
