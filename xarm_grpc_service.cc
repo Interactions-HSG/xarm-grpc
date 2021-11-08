@@ -47,6 +47,8 @@ using xapi::Temperatures;
 using xapi::Version;
 using xapi::Voltages;
 using xapi::XAPI;
+using xapi::Counter;
+
 
 // XAPI server
 class XAPIServiceImpl final : public XAPI::Service {
@@ -644,6 +646,33 @@ class XAPIServiceImpl final : public XAPI::Service {
         fence_mode_res->set_status_code(status_code_tmp);
         return Status::OK;
     }
+
+
+    Status GetCounter(ServerContext* context, const Empty* empty,
+                          Counter* counter) override {
+        int status_code_tmp = 0;
+        int counter_tmp = api->count;
+        counter->set_counter(counter_tmp);
+        counter->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
+    Status SetCounterReset(ServerContext* context, const Empty* empty,
+                          Counter* counter) override {
+
+        int status_code_tmp = api->set_counter_reset();
+        counter->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+
+    Status SetCounterIncrease(ServerContext* context, const Empty* empty,
+                          Counter* counter) override {
+
+        int status_code_tmp = api->set_counter_increase();
+        counter->set_status_code(status_code_tmp);
+        return Status::OK;
+    }
+    
 
     Status SetSimulationRobot(ServerContext* context,
                               const SimulationRobot* simulation_robot,

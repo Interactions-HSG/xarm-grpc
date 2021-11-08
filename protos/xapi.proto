@@ -70,6 +70,12 @@ service XAPI {
 
   rpc SetFenceMode (FenceMode) returns (FenceMode); // TODO: how to getFenceMode ?
 
+  // counter
+  rpc GetCounter (Empty) returns (Counter);
+  rpc SetCounterReset (Empty) returns (Counter);
+  rpc SetCounterIncrease (Empty) returns (Counter);
+
+
   // Simulation Robot
   rpc GetSimulationRobot (Empty) returns (SimulationRobot);
   rpc SetSimulationRobot (SimulationRobot) returns (SimulationRobot);
@@ -299,6 +305,11 @@ message TCPBoundary {
 message FenceMode {
   int32 status_code = 1;
   bool on = 2;
+}
+
+message Counter {
+  int32 status_code = 1;
+  int32 counter = 2;
 }
 
 message SimulationRobot{

@@ -42,6 +42,7 @@ using grpc::ClientContext;
 using grpc::Status;
 using xapi::Cmdnum;
 using xapi::CollisionSensitivity;
+using xapi::Counter;
 using xapi::Currents;
 using xapi::DefaultIsRadian;
 using xapi::Empty;
@@ -599,6 +600,8 @@ class XAPIClient {
 
     // Turn on/off safety mode
     FenceMode SetFenceMode(const FenceMode &fence_mode) {
+        Empty empty;
+
         // Context for the client. It could be used to convey extra information
         // to the server and/or tweak certain RPC behaviors.
         ClientContext context;
@@ -609,6 +612,45 @@ class XAPIClient {
             stub_->SetFenceMode(&context, fence_mode, &fence_mode_res);
 
         return fence_mode_res;
+    }
+
+    // Get the xArm counter
+    Counter GetCounter() {
+        Empty empty;
+        Counter counter;
+        ClientContext context;
+        Status status = stub_->GetCounter(&context, empty, &counter);
+        return counter;
+    }
+
+    // Reset counter value
+    Counter SetCounterReset() {
+        Empty empty;
+
+        // Context for the client. It could be used to convey extra information
+        // to the server and/or tweak certain RPC behaviors.
+        ClientContext context;
+        // Container for the data we expect from the server.
+        Counter counter;
+
+        Status status = stub_->SetCounterReset(&context, empty, &counter);
+
+        return counter;
+    }
+
+    // Set counter plus 1
+    Counter SetCounterIncrease() {
+        Empty empty;
+
+        // Context for the client. It could be used to convey extra information
+        // to the server and/or tweak certain RPC behaviors.
+        ClientContext context;
+        // Container for the data we expect from the server.
+        Counter counter;
+
+        Status status = stub_->SetCounterIncrease(&context, empty, &counter);
+
+        return counter;
     }
 
     // Set the simulation robot
@@ -1832,6 +1874,55 @@ int main(int argc, char **argv) {
                   << std::endl;
     });
 #pragma endregion set_fence_mode
+
+#pragma region get_counter
+    // Subcommand: get_counter
+    auto *get_counter =
+        app.add_subcommand("get_counter", "send a get_counter command");
+
+    get_counter->callback([&]() {
+        XAPIClient client(
+            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
+                                grpc::InsecureChannelCredentials()));
+        Counter counter_res;
+        counter_res = client.GetCounter();  // The actual RPC call!
+        std::cout << "Counter value: " << counter_res.counter() << std::endl;
+        std::cout << "Response code: " << counter_res.status_code()
+                  << std::endl;
+    });
+#pragma endregion get_counter
+
+#pragma region set_counter_reset
+    // Subcommand: set_counter_reset
+    auto *set_counter_reset = app.add_subcommand(
+        "set_counter_reset", "send a set_counter_reset command");
+
+    set_counter_reset->callback([&]() {
+        XAPIClient client(
+            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
+                                grpc::InsecureChannelCredentials()));
+        Counter counter_res;
+        counter_res = client.SetCounterReset();  // The actual RPC call!
+        std::cout << "Response code: " << counter_res.status_code()
+                  << std::endl;
+    });
+#pragma endregion set_counter_reset
+
+#pragma region set_counter_increase
+    // Subcommand: set_counter_increase
+    auto *set_counter_increase = app.add_subcommand(
+        "set_counter_increase", "send a set_counter_increase command");
+
+    set_counter_increase->callback([&]() {
+        XAPIClient client(
+            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
+                                grpc::InsecureChannelCredentials()));
+        Counter counter_res;
+        counter_res = client.SetCounterIncrease();  // The actual RPC call!
+        std::cout << "Response code: " << counter_res.status_code()
+                  << std::endl;
+    });
+#pragma endregion set_counter_increase
 
 #pragma region set_simulation_robot
     // Subcommand: set_simulation_robot
