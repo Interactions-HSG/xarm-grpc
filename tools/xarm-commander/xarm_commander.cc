@@ -51,7 +51,7 @@ using xapi::InitParam;
 using xapi::JointAcc;
 using xapi::JointSpeed;
 using xapi::Mode;
-using xapi::MotionEnable;
+using xapi::MotionEnableMsg;
 using xapi::MoveCircleMsg;
 using xapi::PauseTime;
 using xapi::Position;
@@ -342,17 +342,17 @@ class XAPIClient {
         }*/
 
     // Enable the motion of the xArm (specific joints)
-    MotionEnable SetMotionEnable(const MotionEnable &motion_enable) {
+    MotionEnableMsg MotionEnable(const MotionEnableMsg &motion_enable) {
         // Context for the client. It could be used to convey extra information
         // to the server and/or tweak certain RPC behaviors.
         ClientContext context;
         // Container for the data we expect from the server.
-        MotionEnable motion_enable_res;
+        MotionEnableMsg motion_enable_msg_res;
 
         Status status =
-            stub_->SetMotionEnable(&context, motion_enable, &motion_enable_res);
+            stub_->MotionEnable(&context, motion_enable, &motion_enable_msg_res);
 
-        return motion_enable_res;
+        return motion_enable_msg_res;
     }
 
     // Set the xArm state
@@ -1158,16 +1158,16 @@ int main(int argc, char **argv) {
             grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
                                 grpc::InsecureChannelCredentials()));
         // Request Message
-        MotionEnable motion_enable_req;
-        motion_enable_req.set_enable(enable_flag);
-        motion_enable_req.set_servo_id(servo_option);
+        MotionEnableMsg motion_enable_msg;
+        motion_enable_msg.set_enable(enable_flag);
+        motion_enable_msg.set_servo_id(servo_option);
 
         // Response Message
-        MotionEnable motion_enable_res;
+        MotionEnableMsg motion_enable_msg_res;
 
-        motion_enable_res =
-            client.SetMotionEnable(motion_enable_req);  // The actual RPC call!
-        std::cout << "Response code: " << motion_enable_res.status_code()
+        motion_enable_msg_res =
+            client.MotionEnable(motion_enable_msg);  // The actual RPC call!
+        std::cout << "Response code: " << motion_enable_msg_res.status_code()
                   << std::endl;
     });
 #pragma endregion motion_enable
