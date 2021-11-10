@@ -15,8 +15,10 @@ using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::Status;
+
 using xapi::Cmdnum;
 using xapi::CollisionSensitivity;
+using xapi::Counter;
 using xapi::Currents;
 using xapi::DefaultIsRadian;
 using xapi::Empty;
@@ -39,6 +41,7 @@ using xapi::SetPositionMsg;
 using xapi::SetServoAngleMsg;
 using xapi::SimulationRobot;
 using xapi::State;
+using xapi::Status;
 using xapi::TCPAcc;
 using xapi::TCPBoundary;
 using xapi::TCPSpeed;
@@ -47,8 +50,6 @@ using xapi::Temperatures;
 using xapi::Version;
 using xapi::Voltages;
 using xapi::XAPI;
-using xapi::Counter;
-
 
 // XAPI server
 class XAPIServiceImpl final : public XAPI::Service {

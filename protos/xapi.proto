@@ -6,11 +6,10 @@ package xapi;
 // this service exposes an XArmAPI class object
 
 service XAPI {
-  
   // Connection specific services
   rpc Initialize (InitParam) returns (Empty);
   rpc Disconnect (Empty) returns (Empty);
-  
+
   // Read services
   rpc GetMode (Empty) returns (Mode);
   rpc GetCollisionSensitivity (Empty) returns (CollisionSensitivity);
@@ -22,7 +21,6 @@ service XAPI {
   rpc GetLastUsedJointSpeed (Empty) returns (JointSpeed);
   rpc GetLastUsedJointAcc (Empty) returns (JointAcc);
   rpc GetLastUsedPosition (Empty) returns (Position);
-
 
   rpc GetTemperatures (Empty) returns (Temperatures);
   rpc GetDefaultIsRadian (Empty) returns (DefaultIsRadian);
@@ -38,7 +36,7 @@ service XAPI {
   rpc GetPosition (Empty) returns (Position);
 
   // Write services
-  //  rpc SetDefaultIsRadian (DefaultIsRadian) returns (DefaultIsRadian); // DEACTIVATED!
+  //rpc SetDefaultIsRadian (DefaultIsRadian) returns (DefaultIsRadian); // DEACTIVATED!
 
   rpc MotionEnable (MotionEnableMsg) returns (MotionEnableMsg);
   rpc SetState (State) returns (State);
@@ -82,7 +80,43 @@ service XAPI {
 
 }
 
+message Cmdnum {
+  int32 status_code = 1;
+  int32 cmdnum = 2;
+}
+
+message CollisionSensitivity{
+  int32 status_code = 1;
+  int32 collision_sensitivity = 2;
+}
+
+message Counter {
+  int32 status_code = 1;
+  int32 counter = 2;
+}
+
+message Currents {
+  int32 status_code = 1;
+  float servo_1 = 2;
+  float servo_2 = 3;
+  float servo_3 = 4;
+  float servo_4 = 5;
+  float servo_5 = 6;
+  float servo_6 = 7;
+  float servo_7 = 8;
+}
+
+message DefaultIsRadian {
+  int32 status_code = 1;
+  bool default_is_radian = 2;
+}
+
 message Empty {
+}
+
+message FenceMode {
+  int32 status_code = 1;
+  bool on = 2;
 }
 
 message InitParam {
@@ -102,87 +136,9 @@ message InitParam {
   string report_type = 14;
 }
 
-message Mode {
+message JointAcc {
   int32 status_code = 1;
-  int32 mode = 2;
-}
-
-message CollisionSensitivity{
-  int32 status_code = 1;
-  int32 collision_sensitivity = 2;
-}
-
-message TeachSensitivity{
-  int32 status_code = 1;
-  int32 teach_sensitivity = 2;
-}
-
-message Temperatures {
-  int32 status_code = 1;
-  float servo_1 = 2;
-  float servo_2 = 3;
-  float servo_3 = 4;
-  float servo_4 = 5;
-  float servo_5 = 6;
-  float servo_6 = 7;
-  float servo_7 = 8;
-}
-
-message DefaultIsRadian {
-  int32 status_code = 1;
-  bool default_is_radian = 2;
-}
-
-message Voltages {
-  int32 status_code = 1;
-  float servo_1 = 2;
-  float servo_2 = 3;
-  float servo_3 = 4;
-  float servo_4 = 5;
-  float servo_5 = 6;
-  float servo_6 = 7;
-  float servo_7 = 8;
-}
-
-message Currents {
-  int32 status_code = 1;
-  float servo_1 = 2;
-  float servo_2 = 3;
-  float servo_3 = 4;
-  float servo_4 = 5;
-  float servo_5 = 6;
-  float servo_6 = 7;
-  float servo_7 = 8;
-}
-
-message Version {
-  int32 status_code = 1;
-  string version = 2;
-}
-
-message RobotSN {
-  int32 status_code = 1;
-  string robot_sn = 2;
-}
-
-message State {
-  int32 status_code = 1;
-  int32 state = 2;
-}
-
-message Cmdnum {
-  int32 status_code = 1;
-  int32 cmdnum = 2;
-}
-
-message TCPSpeed {
-  int32 status_code = 1;
-  float tcp_speed = 2;
-}
-
-message TCPAcc {
-  int32 status_code = 1;
-  float tcp_acc = 2;
+  float joint_acc = 2;
 }
 
 message JointSpeed {
@@ -190,9 +146,32 @@ message JointSpeed {
   float joint_speed = 2;
 }
 
-message JointAcc {
+message Mode {
   int32 status_code = 1;
-  float joint_acc = 2;
+  int32 mode = 2;
+}
+
+message MotionEnableMsg {
+  int32 status_code = 1;
+  int32 enable = 2;
+  int32 servo_id = 3;
+}
+
+message MoveCircleMsg {
+  int32 status_code = 1;
+  Position pose_1 = 2;
+  Position pose_2 = 3;
+  float percent = 4;
+  float speed = 5;
+  float acc = 6;
+  float mvtime = 7;
+  bool wait = 8;
+  float timeout = 9;
+}
+
+message PauseTime {
+  int32 status_code = 1;
+  float sltime = 2;
 }
 
 message Position {
@@ -205,6 +184,38 @@ message Position {
   float yaw = 7;
 }
 
+message ReducedMode {
+  int32 status_code = 1;
+  bool on = 2;
+}
+
+message ReducedStates {
+  int32 status_code = 1;
+  bool on = 2;
+  TCPBoundary xyz_list= 3;
+  TCPSpeed tcp_speed= 4;
+  JointSpeed joint_speed = 5;
+  //JRange jrange = 6; // TODO
+  //bool fense_is_on = 7; //TODO
+  //collision_rebount_is_on = 8; // TODO
+}
+
+message ResetMsg {
+  int32 status_code = 1;
+  bool wait = 2;
+  float timeout = 3;
+}
+
+message RobotSN {
+  int32 status_code = 1;
+  string robot_sn = 2;
+}
+
+message ServoAngle {
+    int32 servo_id = 1;
+    float angle = 2;
+}
+
 message ServoAngles {
   int32 status_code = 1;
   float servo_1 = 2;
@@ -214,22 +225,6 @@ message ServoAngles {
   float servo_5 = 6;
   float servo_6 = 7;
   float servo_7 = 8;
-}
-
-message ServoAngle {
-    int32 servo_id = 1;
-    float angle = 2;
-}
-
-message MotionEnableMsg {
-  int32 status_code = 1;
-  int32 enable = 2;
-  int32 servo_id = 3;
-}
-
-message PauseTime {
-  int32 status_code = 1;
-  float sltime = 2;
 }
 
 message SetPositionMsg {
@@ -257,38 +252,25 @@ message SetServoAngleMsg {
   float radius = 9;
 }
 
-message MoveCircleMsg {
-  int32 status_code = 1;
-  Position pose_1 = 2;
-  Position pose_2 = 3;
-  float percent = 4;
-  float speed = 5;
-  float acc = 6;
-  float mvtime = 7;
-  bool wait = 8;
-  float timeout = 9;
-}
-
-message ResetMsg {
-  int32 status_code = 1;
-  bool wait = 2;
-  float timeout = 3;
-}
-
-message ReducedMode {
+message SimulationRobot{
   int32 status_code = 1;
   bool on = 2;
 }
 
-message ReducedStates {
+message State {
   int32 status_code = 1;
-  bool on = 2;
-  TCPBoundary xyz_list= 3;
-  TCPSpeed tcp_speed= 4;
-  JointSpeed joint_speed = 5;
-  //JRange jrange = 6; // TODO
-  //bool fense_is_on = 7; //TODO
-  //collision_rebount_is_on = 8; // TODO 
+  int32 state = 2;
+}
+
+// See the definition of the status_code at
+// https://github.com/xArm-Developer/xArm-CPLUS-SDK/blob/master/doc/xarm_api_code.md
+message Status {
+  int32 code = 1;
+}
+
+message TCPAcc {
+  int32 status_code = 1;
+  float tcp_acc = 2;
 }
 
 message TCPBoundary {
@@ -301,23 +283,39 @@ message TCPBoundary {
   int32 z_min = 7;
 }
 
-message FenceMode {
+message TCPSpeed {
   int32 status_code = 1;
-  bool on = 2;
+  float tcp_speed = 2;
 }
 
-message Counter {
+message TeachSensitivity{
   int32 status_code = 1;
-  int32 counter = 2;
+  int32 teach_sensitivity = 2;
 }
 
-message SimulationRobot{
+message Temperatures {
   int32 status_code = 1;
-  bool on = 2;
+  float servo_1 = 2;
+  float servo_2 = 3;
+  float servo_3 = 4;
+  float servo_4 = 5;
+  float servo_5 = 6;
+  float servo_6 = 7;
+  float servo_7 = 8;
 }
 
-// See the definition of the status_code at
-// https://github.com/xArm-Developer/xArm-CPLUS-SDK/blob/master/doc/xarm_api_code.md
-message Status {
-  int32 code = 1;
+message Version {
+  int32 status_code = 1;
+  string version = 2;
+}
+
+message Voltages {
+  int32 status_code = 1;
+  float servo_1 = 2;
+  float servo_2 = 3;
+  float servo_3 = 4;
+  float servo_4 = 5;
+  float servo_5 = 6;
+  float servo_6 = 7;
+  float servo_7 = 8;
 }
