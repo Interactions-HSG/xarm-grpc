@@ -27,7 +27,7 @@ using xapi::InitParam;
 using xapi::JointAcc;
 using xapi::JointSpeed;
 using xapi::Mode;
-using xapi::MotionEnable;
+using xapi::MotionEnableMsg;
 using xapi::MoveCircleMsg;
 using xapi::PauseTime;
 using xapi::Position;
@@ -322,13 +322,14 @@ class XAPIServiceImpl final : public XAPI::Service {
             return Status::OK;
         }*/
 
-    Status SetMotionEnable(ServerContext* context,
-                           const MotionEnable* motion_enable,
-                           MotionEnable* motion_enable_res) override {
+    Status MotionEnable(ServerContext* context,
+                        const MotionEnableMsg* motion_enable_msg,
+                        MotionEnableMsg* motion_enable_msg_res) override {
         int status_code_tmp;
-        status_code_tmp = api->motion_enable(motion_enable->enable(),
-                                             motion_enable->servo_id());
-        motion_enable_res->set_status_code(status_code_tmp);
+
+        status_code_tmp = api->motion_enable(motion_enable_msg->enable(),
+                                             motion_enable_msg->servo_id());
+        motion_enable_msg_res->set_status_code(status_code_tmp);
         return Status::OK;
     }
 
@@ -648,9 +649,8 @@ class XAPIServiceImpl final : public XAPI::Service {
         return Status::OK;
     }
 
-
     Status GetCounter(ServerContext* context, const Empty* empty,
-                          Counter* counter) override {
+                      Counter* counter) override {
         int status_code_tmp = 0;
         int counter_tmp = api->count;
         counter->set_counter(counter_tmp);
@@ -659,21 +659,18 @@ class XAPIServiceImpl final : public XAPI::Service {
     }
 
     Status SetCounterReset(ServerContext* context, const Empty* empty,
-                          Counter* counter) override {
-
+                           Counter* counter) override {
         int status_code_tmp = api->set_counter_reset();
         counter->set_status_code(status_code_tmp);
         return Status::OK;
     }
 
     Status SetCounterIncrease(ServerContext* context, const Empty* empty,
-                          Counter* counter) override {
-
+                              Counter* counter) override {
         int status_code_tmp = api->set_counter_increase();
         counter->set_status_code(status_code_tmp);
         return Status::OK;
     }
-    
 
     Status SetSimulationRobot(ServerContext* context,
                               const SimulationRobot* simulation_robot,
