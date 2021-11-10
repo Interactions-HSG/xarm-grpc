@@ -25,7 +25,7 @@ using xapi::InitParam;
 using xapi::JointAcc;
 using xapi::JointSpeed;
 using xapi::Mode;
-using xapi::MotionEnable;
+using xapi::MotionEnableMsg;
 using xapi::MoveCircleMsg;
 using xapi::PauseTime;
 using xapi::Position;
@@ -321,13 +321,16 @@ class XAPIServiceImpl final : public XAPI::Service {
             return Status::OK;
         }*/
 
-    Status SetMotionEnable(ServerContext* context,
-                           const MotionEnable* motion_enable,
-                           MotionEnable* motion_enable_res) override {
+    Status MotionEnable(ServerContext* context,
+                           const MotionEnableMsg* motion_enable_msg,
+                           MotionEnableMsg* motion_enable_msg_res) override {
         int status_code_tmp;
-        status_code_tmp = api->motion_enable(motion_enable->enable(),
-                                             motion_enable->servo_id());
-        motion_enable_res->set_status_code(status_code_tmp);
+        std::cout << "Enable:" << motion_enable_msg->enable() << "\n";
+        std::cout << "Id:" << motion_enable_msg->servo_id() << "\n";
+
+        status_code_tmp = api->motion_enable(motion_enable_msg->enable(),
+                                             motion_enable_msg->servo_id());
+        motion_enable_msg_res->set_status_code(status_code_tmp);
         return Status::OK;
     }
 
