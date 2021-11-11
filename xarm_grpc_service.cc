@@ -41,7 +41,7 @@ using xapi::SetPositionMsg;
 using xapi::SetServoAngleMsg;
 using xapi::SimulationRobot;
 using xapi::State;
-using xapi::Status;
+// using xapi::Status; // Bug: do not use (already used for grpc::Status)
 using xapi::TCPAcc;
 using xapi::TCPBoundary;
 using xapi::TCPSpeed;
