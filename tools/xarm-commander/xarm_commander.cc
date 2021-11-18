@@ -516,8 +516,22 @@ class XAPIClient {
         // Container for the data we expect from the server.
         ServoAngles servo_angles_res;
 
+
+        // start clock
+        std::chrono::steady_clock::time_point begin =
+            std::chrono::steady_clock::now();
         Status status =
             stub_->GetInverseKinematics(&context, position, &servo_angles_res);
+        // stop clock
+        std::chrono::steady_clock::time_point end =
+            std::chrono::steady_clock::now();
+        
+        // print time
+        std::cout << "TIME-2: "
+                  << std::chrono::duration_cast<std::chrono::microseconds>(
+                         end - begin)
+                         .count()
+                  << "[µs]" << std::endl;
 
         return servo_angles_res;
     }

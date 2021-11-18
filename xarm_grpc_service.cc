@@ -530,7 +530,21 @@ class XAPIServiceImpl final : public XAPI::Service {
         pose[5] = position->pitch();
 
         fp32 angles[7];
+
+        // start clock
+        std::chrono::steady_clock::time_point begin =
+            std::chrono::steady_clock::now();
         status_code_tmp = api->get_inverse_kinematics(pose, angles);
+        // stop clock
+        std::chrono::steady_clock::time_point end =
+            std::chrono::steady_clock::now();
+
+        // print time
+        std::cout << "TIME-1: "
+                  << std::chrono::duration_cast<std::chrono::microseconds>(
+                         end - begin)
+                         .count()
+                  << "[µs]" << std::endl;
 
         servo_angles->set_servo_1(angles[0]);
         servo_angles->set_servo_2(angles[1]);
