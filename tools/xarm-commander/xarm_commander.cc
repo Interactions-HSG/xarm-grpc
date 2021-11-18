@@ -7,12 +7,12 @@
 #include <grpcpp/health_check_service_interface.h>
 
 #include <CLI11/include/CLI/CLI.hpp>
+#include <chrono>
 #include <iostream>
 #include <memory>
 #include <string>
 
 #include "xapi.grpc.pb.h"
-
 namespace constants {
 // Default values (to avoid magic numbers)
 // default cartesian position
@@ -262,7 +262,20 @@ class XAPIClient {
         Empty empty;
         Version version;
         ClientContext context;
+
+        // start clock
+        std::chrono::steady_clock::time_point begin =
+            std::chrono::steady_clock::now();
         Status status = stub_->GetVersion(&context, empty, &version);
+        // stop clock
+        std::chrono::steady_clock::time_point end =
+            std::chrono::steady_clock::now();
+        // print time
+        std::cout << "TIME-2: "
+                  << std::chrono::duration_cast<std::chrono::microseconds>(
+                         end - begin)
+                         .count()
+                  << "[µs]" << std::endl;
 
         // Act upon the status of the actual RPC.
         // if (status.ok()) {
@@ -349,8 +362,8 @@ class XAPIClient {
         // Container for the data we expect from the server.
         MotionEnableMsg motion_enable_msg_res;
 
-        Status status =
-            stub_->MotionEnable(&context, motion_enable, &motion_enable_msg_res);
+        Status status = stub_->MotionEnable(&context, motion_enable,
+                                            &motion_enable_msg_res);
 
         return motion_enable_msg_res;
     }

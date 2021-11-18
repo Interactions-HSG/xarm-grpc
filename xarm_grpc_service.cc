@@ -9,6 +9,8 @@
 #include <grpcpp/health_check_service_interface.h>
 #include <xarm/wrapper/xarm_api.h>
 
+#include <chrono>
+
 #include "xapi.grpc.pb.h"
 
 using grpc::Server;
@@ -235,7 +237,22 @@ class XAPIServiceImpl final : public XAPI::Service {
                       Version* version) override {
         int status_code;
         unsigned char version_char[40];
+
+        // start clock
+        std::chrono::steady_clock::time_point begin =
+            std::chrono::steady_clock::now();
         status_code = api->get_version(version_char);
+        // stop clock
+        std::chrono::steady_clock::time_point end =
+            std::chrono::steady_clock::now();
+
+        // print time
+        std::cout << "TIME-1: "
+                  << std::chrono::duration_cast<std::chrono::microseconds>(
+                         end - begin)
+                         .count()
+                  << "[µs]" << std::endl;
+
         std::string version_str(
             version_char,
             version_char + sizeof version_char / sizeof version_char[0]);
