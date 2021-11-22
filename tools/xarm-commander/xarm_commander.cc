@@ -11,6 +11,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <thread>
 
 #include "xapi.grpc.pb.h"
 namespace constants {
@@ -119,7 +120,21 @@ class XAPIClient {
         Empty empty;
         Mode mode;
         ClientContext context;
+
+        // start clock
+        std::chrono::steady_clock::time_point begin =
+            std::chrono::steady_clock::now();
         Status status = stub_->GetMode(&context, empty, &mode);
+        // stop clock
+        std::chrono::steady_clock::time_point end =
+            std::chrono::steady_clock::now();
+        // print time
+        std::cout << "TIME-2: "
+                  << std::chrono::duration_cast<std::chrono::microseconds>(
+                         end - begin)
+                         .count()
+                  << "[µs]" << std::endl;
+
         return mode;
     }
 
@@ -516,7 +531,6 @@ class XAPIClient {
         // Container for the data we expect from the server.
         ServoAngles servo_angles_res;
 
-
         // start clock
         std::chrono::steady_clock::time_point begin =
             std::chrono::steady_clock::now();
@@ -525,7 +539,7 @@ class XAPIClient {
         // stop clock
         std::chrono::steady_clock::time_point end =
             std::chrono::steady_clock::now();
-        
+
         // print time
         std::cout << "TIME-2: "
                   << std::chrono::duration_cast<std::chrono::microseconds>(
@@ -742,6 +756,59 @@ int main(int argc, char **argv) {
 
     // ===== SUBCOMMANDS =====
     app.require_subcommand(1);  // set max number of subcommands to 1
+
+    // ----- Evaluation -----
+
+#pragma region test_version
+
+    auto *test_version =
+        app.add_subcommand("test_version", "send a test_version command");
+
+    int N = 10;
+    test_version->add_option("-N", N, "number of cycles");
+    int sleep_time = 200;
+    test_version->add_option("-s", sleep_time, "sleep time [ms]");
+    test_version->callback([&]() {
+        XAPIClient client(
+            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
+                                grpc::InsecureChannelCredentials()));
+        Version version;
+        for (int i = 0; i < N; i++) {
+            version = client.GetVersion();  // The actual RPC call!
+            std::cout << "Version: " << version.version() << std::endl;
+            std::cout << "Response code: " << version.status_code()
+                      << std::endl;
+            std::cout << "Progress: " << i << "/" << N << ") ~ "
+                      << int((i / N) * 100) << "%";
+            std::this_thread::sleep_for(std::chrono::milliseconds(sleep_time));
+        }
+    });
+#pragma endregion test_version
+
+#pragma region test_mode
+
+    auto *test_mode =
+        app.add_subcommand("test_mode", "send a test_mode command");
+
+    N = 10;
+    test_mode->add_option("-N", N, "number of cycles");
+    sleep_time = 200;
+    test_mode->add_option("-s", sleep_time, "sleep time [ms]");
+    test_mode->callback([&]() {
+        XAPIClient client(
+            grpc::CreateChannel(fmt::format("{}:{}", server_ip, server_port),
+                                grpc::InsecureChannelCredentials()));
+        Mode mode;
+        for (int i = 0; i < N; i++) {
+            mode = client.GetMode();  // The actual RPC call!
+            std::cout << "Mode: " << mode.mode() << std::endl;
+            std::cout << "Response code: " << mode.status_code() << std::endl;
+            std::cout << "Progress: " << i << "/" << N << ") ~ "
+                      << int((i / N) * 100) << "%";
+            std::this_thread::sleep_for(std::chrono::milliseconds(sleep_time));
+        }
+    });
+#pragma endregion test_mode
 
     // ----- Connection specific -----
 #pragma region disconnect
