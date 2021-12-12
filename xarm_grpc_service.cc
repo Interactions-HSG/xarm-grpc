@@ -73,7 +73,22 @@ class XAPIServiceImpl final : public XAPI::Service {
     Status GetMode(ServerContext* context, const Empty* empty,
                    Mode* mode) override {
         int status_code_tmp = 0;  // TODO(jo-bru): status code for properties
+
+        // start clock
+        std::chrono::steady_clock::time_point begin =
+            std::chrono::steady_clock::now();
         int mode_tmp = api->mode;
+        // stop clock
+        std::chrono::steady_clock::time_point end =
+            std::chrono::steady_clock::now();
+
+        // print time
+        std::cout << "TIME-1: "
+                  << std::chrono::duration_cast<std::chrono::microseconds>(
+                         end - begin)
+                         .count()
+                  << "[µs]" << std::endl;
+
         mode->set_mode(mode_tmp);
         mode->set_status_code(status_code_tmp);
         return Status::OK;
@@ -280,7 +295,21 @@ class XAPIServiceImpl final : public XAPI::Service {
                     State* state) override {
         int status_code_tmp;
         int state_tmp;
+        // start clock
+        std::chrono::steady_clock::time_point begin =
+            std::chrono::steady_clock::now();
         status_code_tmp = api->get_state(&state_tmp);
+        // stop clock
+        std::chrono::steady_clock::time_point end =
+            std::chrono::steady_clock::now();
+
+        // print time
+        std::cout << "TIME-1: "
+                  << std::chrono::duration_cast<std::chrono::microseconds>(
+                         end - begin)
+                         .count()
+                  << "[µs]" << std::endl;
+
         state->set_state(state_tmp);
         state->set_status_code(status_code_tmp);
         return Status::OK;
@@ -316,7 +345,23 @@ class XAPIServiceImpl final : public XAPI::Service {
                        Position* position) override {
         int status_code_tmp;
         fp32 pose[6];
+
+        // start clock
+        std::chrono::steady_clock::time_point begin =
+            std::chrono::steady_clock::now();
         status_code_tmp = api->get_position(pose);
+        // stop clock
+        std::chrono::steady_clock::time_point end =
+            std::chrono::steady_clock::now();
+
+        // print time
+        std::cout << "TIME-1: "
+                  << std::chrono::duration_cast<std::chrono::microseconds>(
+                         end - begin)
+                         .count()
+                  << "[µs]" << std::endl;
+
+
         position->set_x(pose[0]);
         position->set_y(pose[1]);
         position->set_z(pose[2]);
@@ -353,7 +398,22 @@ class XAPIServiceImpl final : public XAPI::Service {
     Status SetState(ServerContext* context, const State* state,
                     State* state_res) override {
         int status_code_tmp;
+        
+        // start clock
+        std::chrono::steady_clock::time_point begin =
+            std::chrono::steady_clock::now();
         status_code_tmp = api->set_state(state->state());
+        // stop clock
+        std::chrono::steady_clock::time_point end =
+            std::chrono::steady_clock::now();
+
+        // print time
+        std::cout << "TIME-1: "
+                  << std::chrono::duration_cast<std::chrono::microseconds>(
+                         end - begin)
+                         .count()
+                  << "[µs]" << std::endl;
+
         state_res->set_status_code(status_code_tmp);
         return Status::OK;
     }
@@ -419,8 +479,22 @@ class XAPIServiceImpl final : public XAPI::Service {
                                           // => when not set => default: -1 (use
                                           // optional or singleton oneof)
 
+        // start clock
+        std::chrono::steady_clock::time_point begin =
+            std::chrono::steady_clock::now();
         status_code_tmp =
             api->set_position(pose, radius, speed, acc, 0, wait, timeout);
+        // stop clock
+        std::chrono::steady_clock::time_point end =
+            std::chrono::steady_clock::now();
+
+        // print time
+        std::cout << "TIME-1: "
+                  << std::chrono::duration_cast<std::chrono::microseconds>(
+                         end - begin)
+                         .count()
+                  << "[µs]" << std::endl;
+
 
         set_position_msg_res->set_status_code(status_code_tmp);
         return Status::OK;
@@ -691,14 +765,42 @@ class XAPIServiceImpl final : public XAPI::Service {
 
     Status SetCounterReset(ServerContext* context, const Empty* empty,
                            Counter* counter) override {
+
+        // start clock
+        std::chrono::steady_clock::time_point begin =
+            std::chrono::steady_clock::now();
         int status_code_tmp = api->set_counter_reset();
+        // stop clock
+        std::chrono::steady_clock::time_point end =
+            std::chrono::steady_clock::now();
+
+        // print time
+        std::cout << "TIME-1: "
+                  << std::chrono::duration_cast<std::chrono::microseconds>(
+                         end - begin)
+                         .count()
+                  << "[µs]" << std::endl;
         counter->set_status_code(status_code_tmp);
         return Status::OK;
     }
 
     Status SetCounterIncrease(ServerContext* context, const Empty* empty,
                               Counter* counter) override {
+
+        // start clock
+        std::chrono::steady_clock::time_point begin =
+            std::chrono::steady_clock::now();
         int status_code_tmp = api->set_counter_increase();
+        // stop clock
+        std::chrono::steady_clock::time_point end =
+            std::chrono::steady_clock::now();
+
+        // print time
+        std::cout << "TIME-1: "
+                  << std::chrono::duration_cast<std::chrono::microseconds>(
+                         end - begin)
+                         .count()
+                  << "[µs]" << std::endl;
         counter->set_status_code(status_code_tmp);
         return Status::OK;
     }
