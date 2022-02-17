@@ -31,3 +31,14 @@ RUN git clone --recurse-submodules -b v${GRPC_VERSION} https://github.com/grpc/g
     make; \
     make install; \
     popd;
+
+FROM extend-grpc AS xarm-grpc
+
+COPY ./xarm_grpc_project/. /root
+
+RUN cd /root/xarm-grpc; \
+    make -C libs/xArm-CPLUS-SDK xarm; \
+    make install -C libs/xArm-CPLUS-SDK; \
+    mkdir -p cmake/build; cd cmake/build; \
+    cmake -DCMAKE_PREFIX_PATH=~/.local ../..; \
+    make;
