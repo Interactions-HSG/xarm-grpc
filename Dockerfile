@@ -13,3 +13,21 @@ RUN apt-get update; \
     make; \
     make install; \
     cmake --version;
+
+FROM base AS extend-grpc
+
+ENV MY_INSTALL_DIR=~/.local
+ENV PATH="$MY_INSTALL_DIR/bin:$PATH"
+
+RUN cp /bin/bash /bin/sh
+RUN git clone --recurse-submodules -b v${GRPC_VERSION} https://github.com/grpc/grpc; \
+    cd grpc; \
+    mkdir -p cmake/build; \
+    pushd cmake/build; \
+    cmake -DgRPC_INSTALL=ON \
+          -DgRPC_BUILD_TESTS=OFF \
+          -DCMAKE_INSTALL_PREFIX=$MY_INSTALL_DIR \
+          ../..; \
+    make; \
+    make install; \
+    popd;
