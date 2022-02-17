@@ -42,3 +42,7 @@ RUN cd /root/xarm-grpc; \
     mkdir -p cmake/build; cd cmake/build; \
     cmake -DCMAKE_PREFIX_PATH=~/.local ../..; \
     make;
+
+FROM xarm-grpc as runtime
+
+RUN ./root/xarm-grpc/cmake/build/xarm-grpc-service start &
