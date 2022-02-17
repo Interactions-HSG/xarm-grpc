@@ -34,7 +34,9 @@ RUN git clone --recurse-submodules -b v${GRPC_VERSION} https://github.com/grpc/g
 
 FROM extend-grpc AS xarm-grpc
 
-COPY ./xarm_grpc_project/. /root
+RUN mkdir xarm-grpc
+
+COPY . /root/xarm-grpc
 
 RUN cd /root/xarm-grpc; \
     make -C libs/xArm-CPLUS-SDK xarm; \
