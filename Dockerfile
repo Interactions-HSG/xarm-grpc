@@ -1,50 +1,83 @@
-FROM ubuntu:18.04 AS base
+# syntax=docker/dockerfile:1
+ARG GCC_VERSION=11.2.0
 
-ENV CMAKE_VERSION=3.22.0
-ENV GRPC_VERSION=1.43.0
+# this stage builds cmake
+FROM gcc:$GCC_VERSION AS cmake
 
-RUN apt-get update; \
-    apt install -y build-essential libssl-dev wget autoconf libtool pkg-config git; \
-    cd /usr/src; \
-    wget https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}.tar.gz; \
-    tar -zxvf cmake-${CMAKE_VERSION}.tar.gz; \
-    cd cmake-${CMAKE_VERSION}; \
-    ./bootstrap; \
-    make; \
-    make install; \
-    cmake --version;
+ARG CMAKE_VERSION=3.22.0
 
-FROM base AS extend-grpc
+RUN set -ex \
+ && wget https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-Linux-x86_64.sh \
+ -q -O /tmp/cmake-install.sh \
+ && chmod u+x /tmp/cmake-install.sh \
+ && mkdir -p /usr/bin/cmake \
+ && /tmp/cmake-install.sh --skip-license --prefix=/usr/bin/cmake \
+ && rm /tmp/cmake-install.sh
 
-ENV MY_INSTALL_DIR=~/.local
+# this stage builds cmake
+FROM gcc:$GCC_VERSION AS grpc
+
+ARG GRPC_VERSION=1.43.0
+
+# copy cmake from the cmake image
+COPY --from=cmake /usr/bin/cmake /usr/bin/cmake
+RUN chmod u+x /usr/bin/cmake/bin/cmake
+ENV PATH="/usr/bin/cmake/bin:$PATH"
+
+RUN apt-get update && apt-get install -y \
+    autoconf \
+    build-essential \
+    libssl-dev \
+    libtool \
+    pkg-config \
+ && rm -rf /var/lib/apt/lists/*
+
+ENV MY_INSTALL_DIR=/app/grpc
 ENV PATH="$MY_INSTALL_DIR/bin:$PATH"
 
-RUN cp /bin/bash /bin/sh
-RUN git clone --recurse-submodules -b v${GRPC_VERSION} https://github.com/grpc/grpc; \
-    cd grpc; \
-    mkdir -p cmake/build; \
-    pushd cmake/build; \
-    cmake -DgRPC_INSTALL=ON \
-          -DgRPC_BUILD_TESTS=OFF \
-          -DCMAKE_INSTALL_PREFIX=$MY_INSTALL_DIR \
-          ../..; \
-    make; \
-    make install; \
-    popd;
+RUN mkdir -p $MY_INSTALL_DIR
 
-FROM extend-grpc AS xarm-grpc
+WORKDIR /tmp
+RUN git clone --recurse-submodules -b v${GRPC_VERSION} https://github.com/grpc/grpc \
+ && cd grpc \
+ && mkdir -p cmake/build \
+ && cd cmake/build \
+ && cmake \
+ -DgRPC_INSTALL=ON \
+ -DgRPC_BUILD_TESTS=OFF \
+ -DCMAKE_INSTALL_PREFIX=$MY_INSTALL_DIR \
+ ../.. \
+ && make \
+ && make install
 
-RUN mkdir xarm-grpc
+# this stage builds xarm-grpc
+FROM gcc:$GCC_VERSION
 
-COPY . /root/xarm-grpc
+# copy cmake from the cmake image
+COPY --from=cmake /usr/bin/cmake /usr/bin/cmake
+RUN chmod u+x /usr/bin/cmake/bin/cmake
+ENV PATH="/usr/bin/cmake/bin:$PATH"
 
-RUN cd /root/xarm-grpc; \
-    make -C libs/xArm-CPLUS-SDK xarm; \
-    make install -C libs/xArm-CPLUS-SDK; \
-    mkdir -p cmake/build; cd cmake/build; \
-    cmake -DCMAKE_PREFIX_PATH=~/.local ../..; \
-    make;
+# copy grpc and protoc from the grpc image
+COPY --from=grpc /app/grpc /usr/local/lib/grpc
+RUN chmod u+x /usr/local/lib/grpc/bin/protoc
+ENV PATH="/usr/local/lib/grpc/bin:$PATH"
 
-FROM xarm-grpc as runtime
+# copy xarm-grpc src
+COPY . /app
 
-RUN ./root/xarm-grpc/cmake/build/xarm-grpc-service start &
+WORKDIR /app
+# install the dependencies for xarm-grpc
+RUN make -C libs/xArm-CPLUS-SDK xarm \
+ && make install -C libs/xArm-CPLUS-SDK
+
+# build xarm-grpc
+RUN mkdir -p cmake/build \
+ && cd cmake/build \
+ && cmake -DCMAKE_PREFIX_PATH=/usr/local/lib/grpc ../.. \
+ && make -j
+
+EXPOSE 50051
+
+ENTRYPOINT ["/app/cmake/build/xarm-grpc-service"]
+CMD ["--help"]
