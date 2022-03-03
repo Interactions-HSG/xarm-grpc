@@ -3,5 +3,5 @@
 
 # These owners will be the default owners for everything in
 # the repo. Unless a later match takes precedence,
-# @jo-bru and @iomz will be requested for review when someone opens a pull request.
-*       @jo-bru @iomz
+# @iomz will be requested for review when someone opens a pull request.
+*       @iomz
