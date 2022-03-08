@@ -10,6 +10,3 @@
 [submodule "libs/fmt"]
 	path = libs/fmt
 	url = https://github.com/fmtlib/fmt.git
-[submodule "libs/protoc-gen-doc"]
-	path = libs/protoc-gen-doc
-	url = git@github.com:pseudomuto/protoc-gen-doc.git
