@@ -5,6 +5,7 @@ ARG GRPC_VERSION=1.43.0
 
 FROM iomz/cmake:$CMAKE_VERSION AS cmake
 FROM iomz/grpc-protoc:$GRPC_VERSION AS grpc
+FROM pseudomuto/protoc-gen-doc as protocGenDoc
 
 # this stage builds xarm-grpc
 FROM gcc:$GCC_VERSION
@@ -19,10 +20,19 @@ COPY --from=grpc /app/grpc /usr/local/lib/grpc
 RUN chmod u+x /usr/local/lib/grpc/bin/protoc
 ENV PATH="/usr/local/lib/grpc/bin:$PATH"
 
+# copy protoc gen doc from the protocGenDoc image
+COPY --from=protocGenDoc /usr/bin/protoc-gen-doc /usr/bin/protoc-gen-doc
+RUN chmod u+x /usr/bin/protoc-gen-doc
+ENV PATH="/usr/bin/protoc-gen-doc:$PATH"
+
 # copy xarm-grpc src
 COPY . /app
 
 WORKDIR /app
+# generate documentation for the proto file
+RUN mkdir -p doc \
+    && protoc --doc_out=./doc --doc_opt=html,index.html protos/*.proto
+
 # install the dependencies for xarm-grpc
 RUN make -C libs/xArm-CPLUS-SDK xarm \
  && make install -C libs/xArm-CPLUS-SDK
