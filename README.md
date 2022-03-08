@@ -69,8 +69,10 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## Maintainers
 
-- Jonas Brütsch ([@jo-bru](https://github.com/jo-bru))
 - Iori Mizutani ([@iomz](https://github.com/iomz))
+
+## Contributors
+See [here](https://github.com/Interactions-HSG/xarm-grpc/graphs/contributors)
 
 ## License
 See `LICENSE`.
